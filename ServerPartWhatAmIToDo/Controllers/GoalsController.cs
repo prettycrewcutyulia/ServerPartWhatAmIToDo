@@ -15,15 +15,17 @@ public class GoalsController : ControllerBase
     private static List<Goal> goals = new();
 
     [HttpGet]
-    public IActionResult GetAllGoals()
+    public IActionResult GetAllGoals([FromQuery] string userId)
     {
-        return Ok(goals);
+        // Фильтрация целей по userId
+        var filteredGoals = goals.Where(g => g.UserId == userId).ToList();
+        return Ok(filteredGoals);
     }
 
     [HttpPost("create")]
-    public IActionResult CreateGoal([FromBody] Goal newGoal)
+    public IActionResult CreateGoal([FromBody] GoalRequest newGoal)
     {
-        goals.Add(newGoal);
+        goals.Add(new Goal(goal: newGoal));
         return Ok(new { Message = "Goal created successfully" });
     }
     
@@ -37,7 +39,7 @@ public class GoalsController : ControllerBase
 
 
     [HttpPut("update/{id}")]
-    public IActionResult UpdateGoal(int id, [FromBody] UpdateGoalRequest request)
+    public IActionResult UpdateGoal(string id, [FromBody] UpdateGoalRequest request)
     {
         var goal = goals.FirstOrDefault(g => g.Id == id);
         if (goal == null)
@@ -46,13 +48,12 @@ public class GoalsController : ControllerBase
         }
 
         goal.Title = request.Title;
-        goal.Description = request.Description;
 
         return Ok(new { Message = "Goal updated successfully" });
     }
     
     [HttpDelete("delete/{id}")]
-    public IActionResult DeleteGoal(int id)
+    public IActionResult DeleteGoal(string id)
     {
         var goal = goals.FirstOrDefault(g => g.Id == id);
         if (goal == null)
