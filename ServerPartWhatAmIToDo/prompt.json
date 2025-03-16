@@ -1,0 +1,69 @@
+{
+  "modelUri": "gpt://b1g1cegqro6illp3dj15/yandexgpt/rc",
+  "completionOptions": {
+    "stream": false,
+    "maxTokens": "5000"
+  },
+  "messages": [
+    {
+      "role": "user",
+      "text": "Как мне выучить английский?"
+    }
+  ],
+  "json_schema": {
+    "schema": {
+      "properties": {
+        "goal": {
+          "title": "Goal",
+          "description": "Цель, которую необходимо достичь",
+          "type": "object",
+          "properties": {
+            "title": {
+              "title": "Goal Title",
+              "description": "Название цели",
+              "type": "string"
+            },
+            "description": {
+              "title": "Goal Description",
+              "description": "Описание цели",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "description"
+          ]
+        },
+        "steps": {
+          "title": "Steps",
+          "description": "Шаги для достижения цели",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": {
+                "title": "Step",
+                "description": "Название шага",
+                "type": "string"
+              },
+              "description": {
+                "title": "Step Description",
+                "description": "Описание шага",
+                "type": "string"
+              }
+            },
+            "required": [
+              "step",
+              "description"
+            ]
+          }
+        }
+      },
+      "required": [
+        "goal",
+        "steps"
+      ],
+      "type": "object"
+    }
+  }
+}
