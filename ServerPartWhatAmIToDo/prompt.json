@@ -41,11 +41,6 @@
           "items": {
             "type": "object",
             "properties": {
-              "step": {
-                "title": "Step",
-                "description": "Название шага",
-                "type": "string"
-              },
               "description": {
                 "title": "Step Description",
                 "description": "Описание шага",
@@ -53,7 +48,6 @@
               }
             },
             "required": [
-              "step",
               "description"
             ]
           }

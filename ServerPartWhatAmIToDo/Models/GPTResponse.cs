@@ -63,18 +63,13 @@ public class CompletionTokensDetails
 
 public class GoalGPT
 {
-    [JsonProperty("description")]
-    public string Description { get; set; }
 
     [JsonProperty("title")]
     public string Title { get; set; }
 }
 
-public class Step
+public class StepGPT
 {
-
-    [JsonProperty("step")]
-    public string StepDescription { get; set; }
 
     [JsonProperty("description")]
     public string Description { get; set; }
@@ -86,5 +81,5 @@ public class GoalPlan
     public GoalGPT Goal { get; set; }
 
     [JsonProperty("steps")]
-    public List<Step> Steps { get; set; }
+    public List<StepGPT> Steps { get; set; }
 }

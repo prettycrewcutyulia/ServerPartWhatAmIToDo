@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ServerPartWhatAmIToDo.Models;
+using ServerPartWhatAmIToDo.Models.Goals;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
@@ -10,20 +11,23 @@ public class FiltersController : ControllerBase
     private static List<Filter> filters = new List<Filter>();
 
     [HttpGet]
-    public IActionResult GetAllFilters()
+    public IActionResult GetAllFilters([FromQuery] string userId)
     {
-        return Ok(filters);
+        // Фильтрация целей по userId
+        var filteredCategory = filters.Where(g => g.UserId == userId).ToList();
+        return Ok(filteredCategory);
     }
 
-    [HttpPost]
-    public IActionResult CreateFilter([FromBody] Filter newFilter)
+    [HttpPost("create")]
+    public IActionResult CreateFilter([FromQuery] string userId, [FromBody] UpdateFilterRequest newFilter)
     {
-        filters.Add(newFilter);
+        filters.Add(new Filter(userId, newFilter.Title, newFilter.Color));
+        
         return Ok(new { Message = "Filter created successfully" });
     }
 
-    [HttpPut("{id}")]
-    public IActionResult UpdateFilter(int id, [FromBody] UpdateFilterRequest request)
+    [HttpPut("update")]
+    public IActionResult UpdateFilter([FromQuery] string id, [FromBody] UpdateFilterRequest request)
     {
         var filter = filters.FirstOrDefault(f => f.Id == id);
         if (filter == null)
@@ -37,8 +41,8 @@ public class FiltersController : ControllerBase
         return Ok(new { Message = "Filter updated successfully" });
     }
     
-    [HttpDelete("{id}")]
-    public IActionResult DeleteFilter(int id)
+    [HttpDelete("delete")]
+    public IActionResult DeleteFilter([FromQuery] string id)
     {
         var filter = filters.FirstOrDefault(f => f.Id == id);
         if (filter == null)

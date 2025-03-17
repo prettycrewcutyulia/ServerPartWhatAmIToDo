@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServerPartWhatAmIToDo.Models;
+using ServerPartWhatAmIToDo.Models.Goals;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ServerPartWhatAmIToDo.Controllers;
@@ -26,20 +27,20 @@ public class GoalsController : ControllerBase
     public IActionResult CreateGoal([FromBody] GoalRequest newGoal)
     {
         goals.Add(new Goal(goal: newGoal));
+        Console.WriteLine("goals/create");
         return Ok(new { Message = "Goal created successfully" });
     }
     
     [HttpPost("get-ai")]
-    public IActionResult GetGoalUsingAI([FromBody] AiGoalRequest request)
+    public async Task<IActionResult> GetGoalUsingAI([FromBody] AiGoalRequest request)
     {
-        
-        var response = Yandex_GPT(request.Context);
-        return Ok(new { Message = "Goal created via AI successfully", Goal = response });
+        var response = await Yandex_GPT(request.Context);
+        return Ok(response);
     }
 
 
     [HttpPut("update/{id}")]
-    public IActionResult UpdateGoal(string id, [FromBody] UpdateGoalRequest request)
+    public IActionResult UpdateGoal(string id, [FromBody] GoalRequest request)
     {
         var goal = goals.FirstOrDefault(g => g.Id == id);
         if (goal == null)
@@ -48,6 +49,15 @@ public class GoalsController : ControllerBase
         }
 
         goal.Title = request.Title;
+        goal.Steps = request.Steps.Select(c=> new Step(c, goal.Id)).ToList();
+        goal.StartDate = request.StartDate;
+        goal.Deadline = request.Deadline;
+        goal.Category =  request.Categories.Select(c => new Filter(
+            goal.UserId,
+            "c.Name",
+            "c.ColorHex"
+        )).ToList();
+        
 
         return Ok(new { Message = "Goal updated successfully" });
     }
@@ -65,7 +75,7 @@ public class GoalsController : ControllerBase
         return Ok(new { Message = "Goal deleted successfully" });
     }
     
-    private async  Task<GoalPlan?> Yandex_GPT(string message)
+    private async Task<GoalPlan?> Yandex_GPT(string message)
     { 
         // Загрузите переменные окружения из .env файла
         DotNetEnv.Env.Load();

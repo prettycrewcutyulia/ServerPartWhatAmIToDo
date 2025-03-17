@@ -2,14 +2,17 @@ namespace ServerPartWhatAmIToDo.Models;
 
 public class Filter
 {
-    public int Id { get; set; }
-    public int UserId { get; set; }
-    public string Title { get; set; }
-    public string Color { get; set; }
-}
+    public Filter(string userId, string title, string color)
+    {
+        Id = Guid.NewGuid().ToString();
+        UserId = userId;
+        Title = title;
+        Color = color;
+    }
 
-public class UpdateFilterRequest
-{
+    public string Id { get; set; }
+    
+    public string UserId { get; set; }
     public string Title { get; set; }
     public string Color { get; set; }
 }
