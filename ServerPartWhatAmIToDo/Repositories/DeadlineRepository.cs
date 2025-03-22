@@ -60,5 +60,12 @@ namespace ServerPartWhatAmIToDo.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<IEnumerable<DeadlineEntity>> GetDeadlinesForUserAsync(int userId, int maxDaysCount)
+        {
+            return await _context.Deadlines
+                .Where(d => d.UserId == userId && d.Deadline.Date <= DateTime.UtcNow.AddDays(maxDaysCount).Date)
+                .ToListAsync();
+        }
     }
 }

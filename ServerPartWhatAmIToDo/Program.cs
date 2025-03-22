@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ServerPartWhatAmIToDo;
+using ServerPartWhatAmIToDo.Services;
 
 // Создаете WebApplicationBuilder
 var builder = WebApplication.CreateBuilder(args);
@@ -78,12 +79,14 @@ builder.Services.AddControllersWithViews();
 // Это ваша регистрация сервисов внутри метода расширения
 builder.Services.AddDataAccessServices(builder.Configuration);
 builder.Services.AddServices();
+builder.Services.AddHostedServices();
 
 // Добавление Health Checks
 builder.Services.AddHealthChecks();
 
 // Строите приложение
 var app = builder.Build();
+
 
 // Включаете и настраиваете Swagger/SwaggerUI
 if (app.Environment.IsDevelopment())

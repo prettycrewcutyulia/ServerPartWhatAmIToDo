@@ -9,6 +9,6 @@ public class UpdateAccountRequest
 
 public class UpdateTgRequest
 {
-    public string? TgId { get; set; }
-    public string? Email { get; set; }
+    public long TgId { get; set; }
+    public string Email { get; set; }
 }

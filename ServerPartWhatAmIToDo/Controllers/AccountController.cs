@@ -5,7 +5,6 @@ using ServerPartWhatAmIToDo.Services;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
@@ -63,20 +62,20 @@ public class AccountController : ControllerBase
     }
     
     [HttpPut("correct")]
-    public IActionResult VerifyUser([FromBody] string email)
+    public IActionResult VerifyUser([FromBody] UpdateTgRequest request)
     {
         try
         {
-            // Логика для удаления аккаунта
-            var user = _userService.GetUserByEmailAsync(email).Result;
-            if (user == null)
+            var user = _userService.GetUserByEmailAsync(request.Email).Result;
+            if (user != null)
             {
-                return BadRequest("Invalid email");
-            }
-            else
-            {
+
+                _userService.UpdateUserAsync(request).Wait();
                 return Ok();
             }
+            
+            return BadRequest("Invalid email");
+            
         }
         catch
         {

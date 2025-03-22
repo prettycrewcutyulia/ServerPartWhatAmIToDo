@@ -36,4 +36,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDeadlineService, DeadlineService>();
         services.AddScoped<IFilterService, FilterService>();
     }
+    
+    
+    public static void AddHostedServices(this IServiceCollection services)
+    {
+        services.AddHostedService<ReminderProcessingService>();
+    }
+
 }

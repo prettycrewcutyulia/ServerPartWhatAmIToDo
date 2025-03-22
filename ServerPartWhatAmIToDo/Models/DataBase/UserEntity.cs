@@ -25,7 +25,7 @@ namespace ServerPartWhatAmIToDo.Models.DataBase
         public string Password { get; set; }
 
         [Column("id_tg")]
-        public string? IdTg { get; set; }
+        public long? IdTg { get; set; }
 
         [Column("photo")]
         public byte[]? Photo { get; set; }

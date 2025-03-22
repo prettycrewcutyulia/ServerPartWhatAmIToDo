@@ -9,8 +9,8 @@ namespace ServerPartWhatAmIToDo.Services
     {
         Task<(bool, string?)> Login(string email, string password);
         Task<IEnumerable<UserEntity>> GetAllUsersAsync();
-        Task<UserEntity> GetUserByIdAsync(int userId);
-        Task<UserEntity> GetUserByEmailAsync(string email);
+        Task<UserEntity?> GetUserByIdAsync(int userId);
+        Task<UserEntity?> GetUserByEmailAsync(string email);
         Task<long> AddUserAsync(RegisterRequest user);
         Task UpdateUserAsync(UpdateAccountRequest user);
         
@@ -64,12 +64,12 @@ namespace ServerPartWhatAmIToDo.Services
             return await _userRepository.GetAllUsersAsync();
         }
 
-        public async Task<UserEntity> GetUserByIdAsync(int userId)
+        public async Task<UserEntity?> GetUserByIdAsync(int userId)
         {
             return await _userRepository.GetUserByIdAsync(userId);
         }
         
-        public async Task<UserEntity> GetUserByEmailAsync(string email)
+        public async Task<UserEntity?> GetUserByEmailAsync(string email)
         {
             return await _userRepository.GetUserByEmailAsync(email);
         }

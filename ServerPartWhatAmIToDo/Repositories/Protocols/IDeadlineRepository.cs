@@ -13,5 +13,6 @@ namespace ServerPartWhatAmIToDo.Repositories.Protocols
         Task<int> AddDeadlineAsync(DeadlineEntity deadline);
         Task UpdateDeadlineAsync(DeadlineEntity deadline);
         Task DeleteDeadlineAsync(int deadlineId);
+        Task<IEnumerable<DeadlineEntity>> GetDeadlinesForUserAsync(int userId, int maxDaysCount);
     }
 }

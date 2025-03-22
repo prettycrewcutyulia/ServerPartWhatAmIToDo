@@ -12,6 +12,7 @@ namespace ServerPartWhatAmIToDo.Services
         Task<int> AddDeadlineAsync(DeadlineEntity deadline);
         Task UpdateDeadlineAsync(DeadlineEntity deadline);
         Task DeleteDeadlineAsync(int deadlineId);
+        Task<IEnumerable<DeadlineEntity>> GetDeadlinesForUserAsync(int userId, int maxDaysCount);
     }
     
     public class DeadlineService : IDeadlineService
@@ -59,6 +60,11 @@ namespace ServerPartWhatAmIToDo.Services
         {
             // Перед удалением проверьте, существует ли дедлайн или добавьте другие условия
             await _deadlineRepository.DeleteDeadlineAsync(deadlineId);
+        }
+
+        public async Task<IEnumerable<DeadlineEntity>> GetDeadlinesForUserAsync(int userId, int maxDaysCount)
+        {
+           return await _deadlineRepository.GetDeadlinesForUserAsync(userId, maxDaysCount);
         }
     }
 }
