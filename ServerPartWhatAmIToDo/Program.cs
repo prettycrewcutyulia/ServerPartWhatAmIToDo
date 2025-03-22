@@ -1,10 +1,40 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ServerPartWhatAmIToDo;
 
 // Создаете WebApplicationBuilder
 var builder = WebApplication.CreateBuilder(args);
+DotNetEnv.Env.Load();
 
-// Добавляете поддержку контроллеров
-builder.Services.AddControllers();
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = Environment.GetEnvironmentVariable("ValidIssuer"),
+            ValidAudience = Environment.GetEnvironmentVariable("ValidAudience"),
+            IssuerSigningKey = 
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRETKEY")))
+        };
+    });
+
+builder.Services.AddAuthorization(auth =>
+{
+    auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme‌​)
+        .RequireAuthenticatedUser().Build());
+});
 
 // Конфигурируете Swagger
 builder.Services.AddSwaggerGen(c =>
@@ -15,7 +45,39 @@ builder.Services.AddSwaggerGen(c =>
         Title = "My API",
         Description = "A simple example ASP.NET Core Web API"
     });
+    
+    // Определяем схемы безопасности
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Введите 'Bearer' [пробел] и ваш токен",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
+
+// Добавляете поддержку контроллеров
+builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
+
+// Это ваша регистрация сервисов внутри метода расширения
+builder.Services.AddDataAccessServices(builder.Configuration);
+builder.Services.AddServices();
 
 // Добавление Health Checks
 builder.Services.AddHealthChecks();
@@ -36,6 +98,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Маппинг эндпоинтов Health Checks

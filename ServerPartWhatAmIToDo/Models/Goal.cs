@@ -1,87 +1,68 @@
 using Newtonsoft.Json;
+using ServerPartWhatAmIToDo.Models.DataBase;
 using ServerPartWhatAmIToDo.Models.Goals;
 
 namespace ServerPartWhatAmIToDo.Models;
 
 public class Goal
 {
-    public string Id { get; set; }
+    public int? Id { get; set; }
     
-    public string UserId { get; set; }
+    public int UserId { get; set; }
     public string Title { get; set; }
     
-    public List<Filter> Category { get; set; }
+    public List<int> CategoryId { get; set; }
     
     public List<Step> Steps { get; set; }
-    
-    [JsonConverter(typeof(UnixDateTimeConverter))]
+
     public DateTime? StartDate { get; set; }
-    
-    [JsonConverter(typeof(UnixDateTimeConverter))]
+
     public DateTime? Deadline { get; set; }
     
 
     public Goal(GoalRequest goal)
     {
-        Id = Guid.NewGuid().ToString();
+        Id = null;
         UserId = goal.UserId;
         Title = goal.Title;
-        Category =  goal.Categories.Select(c => new Filter(
-            goal.UserId,
-            "c.Name",
-            "c.ColorHex"
-            )).ToList();
-        Steps = goal.Steps.Select(c=> new Step(c, Id)).ToList();
+        CategoryId = goal.CategoriesId;
+        Steps = goal.Steps.Select(c=> new Step(c)).ToList();
         StartDate = goal.StartDate;
         Deadline = goal.Deadline;
+    }
+
+    public Goal(GoalEntity goal, IEnumerable<StepEntity> steps)
+    {
+        Id = goal.GoalId;
+        Title = goal.Title;
+        UserId = goal.UserId;
+        CategoryId = goal.IdFilters.ToList();
+        StartDate = goal.StartDate;
+        Deadline = goal.Deadline;
+        Steps = steps.Select(c=> new Step(c)).ToList();
     }
 }
 
 public class Step
 {
-    public Step(StepRequest stepRequest, string goalId)
+    public Step(StepRequest stepRequest)
     {
-        GoalId = goalId;
-        Id = Guid.NewGuid().ToString();
+        Id = null;
         Title = stepRequest.Title;
         IsCompleted = stepRequest.IsCompleted;
+        Deadline = stepRequest.Deadline;
+    }
+    
+    public Step(StepEntity step)
+    {
+        Id = step.StepId;
+        Title = step.Title;
+        IsCompleted = step.IsCompleted ?? false;
+        Deadline = step.Deadline;
     }
 
-    public string Id { get; set; }
-    
-    public string GoalId { get; set; }
+    public int? Id { get; set; }
     public string Title { get; set; }
     public bool IsCompleted { get; set; }
-}
-
-public class UnixDateTimeConverter : JsonConverter<DateTime?>
-{
-    public override DateTime? ReadJson(JsonReader reader, Type objectType, DateTime? existingValue, bool hasExistingValue, JsonSerializer serializer)
-    {
-        if (reader.TokenType == JsonToken.Null)
-        {
-            return null;
-        }
-
-        if (reader.TokenType == JsonToken.Integer)
-        {
-            long unixTime = (long)reader.Value;
-            return DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
-        }
-
-        throw new JsonSerializationException("Unexpected token type when parsing a DateTime.");
-    }
-
-    public override void WriteJson(JsonWriter writer, DateTime? value, JsonSerializer serializer)
-    {
-        if (value.HasValue)
-        {
-            long unixTime = ((DateTimeOffset)value.Value).ToUnixTimeSeconds();
-            writer.WriteValue(unixTime);
-        }
-        else
-        {
-            writer.WriteNull();
-        }
-    }
+    public DateTime? Deadline { get; set; }
 }

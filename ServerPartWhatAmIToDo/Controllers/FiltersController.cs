@@ -1,56 +1,50 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ServerPartWhatAmIToDo.Models;
 using ServerPartWhatAmIToDo.Models.Goals;
+using ServerPartWhatAmIToDo.Services;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class FiltersController : ControllerBase
 {
-    private static List<Filter> filters = new List<Filter>();
+    
+    private readonly IFilterService _filterService;
+
+    public FiltersController(IFilterService filterService)
+    {
+        _filterService = filterService;
+    }
 
     [HttpGet]
-    public IActionResult GetAllFilters([FromQuery] string userId)
+    public IActionResult GetAllFilters([FromQuery] int userId)
     {
-        // Фильтрация целей по userId
-        var filteredCategory = filters.Where(g => g.UserId == userId).ToList();
-        return Ok(filteredCategory);
+        
+        var filters =  _filterService.GetFiltersByUserIdAsync(userId).Result;
+        return Ok(filters);
     }
 
     [HttpPost("create")]
-    public IActionResult CreateFilter([FromQuery] string userId, [FromBody] UpdateFilterRequest newFilter)
+    public IActionResult CreateFilter([FromBody] FilterRequest newFilter)
     {
-        filters.Add(new Filter(userId, newFilter.Title, newFilter.Color));
-        
-        return Ok(new { Message = "Filter created successfully" });
+        var filter = _filterService.AddFilterAsync(newFilter).Result;
+        return Ok(filter);
     }
 
     [HttpPut("update")]
-    public IActionResult UpdateFilter([FromQuery] string id, [FromBody] UpdateFilterRequest request)
+    public IActionResult UpdateFilter([FromBody] UpdateFilterRequest request)
     {
-        var filter = filters.FirstOrDefault(f => f.Id == id);
-        if (filter == null)
-        {
-            return NotFound("Filter not found");
-        }
+        var filter = _filterService.UpdateFilterAsync(request).Result;
 
-        filter.Title = request.Title;
-        filter.Color = request.Color;
-
-        return Ok(new { Message = "Filter updated successfully" });
+        return Ok(filter);
     }
     
     [HttpDelete("delete")]
-    public IActionResult DeleteFilter([FromQuery] string id)
+    public IActionResult DeleteFilter([FromQuery] int id)
     {
-        var filter = filters.FirstOrDefault(f => f.Id == id);
-        if (filter == null)
-        {
-            return NotFound("Filter not found");
-        }
-
-        filters.Remove(filter);
+       _filterService.DeleteFilterAsync(id).Wait();
         return Ok(new { Message = "Filter deleted successfully" });
     }
 }

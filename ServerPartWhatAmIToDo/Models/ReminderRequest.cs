@@ -1,6 +1,7 @@
 namespace ServerPartWhatAmIToDo.Models;
 
-public class DeleteAccountRequest
+public class ReminderRequest
 {
     public int UserId { get; set; }
+    public int CountDays { get; set; }
 }

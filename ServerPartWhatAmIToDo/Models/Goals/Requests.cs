@@ -2,10 +2,9 @@ namespace ServerPartWhatAmIToDo.Models.Goals;
 
 public class GoalRequest
 {
-    // Убрали поле Id, так как оно не нужно для обработки запросов
-    public string UserId { get; set; }
+    public int UserId { get; set; }
     public string Title { get; set; }
-    public List<CategoryRequest> Categories { get; set; }
+    public List<int> CategoriesId { get; set; }
     public List<StepRequest> Steps { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? Deadline { get; set; }
@@ -13,14 +12,11 @@ public class GoalRequest
 
 public class StepRequest
 {
-    // Убрали поле Id, так как оно не нужно для обработки запросов
+    public int? StepId { get; set; }
     public string Title { get; set; }
     public bool IsCompleted { get; set; }
-}
-
-public class CategoryRequest
-{
-    public string Id { get; set; }
+    
+    public DateTime? Deadline { get; set; }
 }
 
 public class AiGoalRequest
@@ -30,6 +26,14 @@ public class AiGoalRequest
 
 public class UpdateFilterRequest
 {
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Color { get; set; }
+}
+
+public class FilterRequest
+{
+    public int UserId { get; set; }
     public string Title { get; set; }
     public string Color { get; set; }
 }

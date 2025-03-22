@@ -1,33 +1,39 @@
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServerPartWhatAmIToDo.Models;
 using ServerPartWhatAmIToDo.Models.Goals;
+using ServerPartWhatAmIToDo.Services;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class GoalsController : ControllerBase
 {
-    private static List<Goal> goals = new();
 
+    private readonly IGoalService _goalService;
+    public GoalsController(IGoalService goalService)
+    {
+        _goalService = goalService;
+    }
     [HttpGet]
-    public IActionResult GetAllGoals([FromQuery] string userId)
+    public IActionResult GetAllGoals([FromQuery] int userId)
     {
         // Фильтрация целей по userId
-        var filteredGoals = goals.Where(g => g.UserId == userId).ToList();
-        return Ok(filteredGoals);
+        var goals = _goalService.GetGoalsByUserIdAsync(userId).Result;
+        return Ok(goals);
     }
 
     [HttpPost("create")]
     public IActionResult CreateGoal([FromBody] GoalRequest newGoal)
     {
-        goals.Add(new Goal(goal: newGoal));
-        Console.WriteLine("goals/create");
+        _goalService.AddGoalAsync(newGoal).Wait();
         return Ok(new { Message = "Goal created successfully" });
     }
     
@@ -40,38 +46,17 @@ public class GoalsController : ControllerBase
 
 
     [HttpPut("update/{id}")]
-    public IActionResult UpdateGoal(string id, [FromBody] GoalRequest request)
+    public IActionResult UpdateGoal(int id, [FromBody] GoalRequest request)
     {
-        var goal = goals.FirstOrDefault(g => g.Id == id);
-        if (goal == null)
-        {
-            return NotFound("Goal not found");
-        }
-
-        goal.Title = request.Title;
-        goal.Steps = request.Steps.Select(c=> new Step(c, goal.Id)).ToList();
-        goal.StartDate = request.StartDate;
-        goal.Deadline = request.Deadline;
-        goal.Category =  request.Categories.Select(c => new Filter(
-            goal.UserId,
-            "c.Name",
-            "c.ColorHex"
-        )).ToList();
-        
+        _goalService.UpdateGoalAsync(id, request).Wait();
 
         return Ok(new { Message = "Goal updated successfully" });
     }
     
     [HttpDelete("delete/{id}")]
-    public IActionResult DeleteGoal(string id)
+    public IActionResult DeleteGoal(int id)
     {
-        var goal = goals.FirstOrDefault(g => g.Id == id);
-        if (goal == null)
-        {
-            return NotFound("Goal not found");
-        }
-
-        goals.Remove(goal);
+       _goalService.DeleteGoalAsync(id).Wait();
         return Ok(new { Message = "Goal deleted successfully" });
     }
     
