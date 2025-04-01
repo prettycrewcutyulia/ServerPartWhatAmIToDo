@@ -33,7 +33,6 @@ public class UpdateFilterRequest
 
 public class FilterRequest
 {
-    public int UserId { get; set; }
     public string Title { get; set; }
     public string Color { get; set; }
 }

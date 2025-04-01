@@ -25,3 +25,20 @@ public class UpdateFilterResponse
     public string Title { get; set; }
     public string Color { get; set; }
 }
+
+public class LoginResponse
+{
+    
+    public long Id { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public string Token { get; set; }
+
+    public LoginResponse(long Id, string Name, string Email, string Token)
+    {
+        this.Id = Id;
+        this.Name = Name;
+        this.Email = Email;
+        this.Token = Token;
+    }
+}

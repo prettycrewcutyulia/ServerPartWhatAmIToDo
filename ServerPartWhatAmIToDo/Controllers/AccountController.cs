@@ -61,6 +61,7 @@ public class AccountController : ControllerBase
         }
     }
     
+    [Authorize]
     [HttpPut("correct")]
     public IActionResult VerifyUser([FromBody] UpdateTgRequest request)
     {
@@ -80,6 +81,21 @@ public class AccountController : ControllerBase
         catch
         {
             return BadRequest("Invalid email");
+        }
+    }
+    
+    [Authorize]
+    [HttpGet("tgExist/{id}")]
+    public IActionResult GetTgExist([FromQuery] int userId) {
+        var res = _userService.ExistTgUserAsync(userId).Result;
+
+        if (res)
+        {
+            return Ok();
+        }
+        else
+        {
+            return NotFound();
         }
     }
 }

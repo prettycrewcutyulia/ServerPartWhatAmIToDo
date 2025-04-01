@@ -2,7 +2,6 @@ using BCrypt.Net;
 
 namespace ServerPartWhatAmIToDo.Services;
 
-
 public static class PasswordService
 {
     // Хэширование пароля

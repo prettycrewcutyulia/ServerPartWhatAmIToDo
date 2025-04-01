@@ -34,7 +34,9 @@ namespace ServerPartWhatAmIToDo.Repositories
 
         public async Task<IEnumerable<GoalEntity>> GetGoalsByUserIdAsync(int userId)
         {
-            return await _context.Goals.Where(goal => goal.UserId == userId).ToListAsync();
+            var goals = await _context.Goals.Where(goal => goal.UserId == userId).ToListAsync();
+            goals.Sort((x, y) => x.GoalId.CompareTo(y.GoalId));
+            return goals;
         }
 
         public async Task<IEnumerable<StepEntity>> GetStepsByGoalIdAsync(int goalId)
@@ -56,7 +58,8 @@ namespace ServerPartWhatAmIToDo.Repositories
                     steps.Add(step);
                 }
             }
-
+            
+            steps.Sort((x, y) => x.StepId.CompareTo(y.StepId));
             return steps;
         }
 

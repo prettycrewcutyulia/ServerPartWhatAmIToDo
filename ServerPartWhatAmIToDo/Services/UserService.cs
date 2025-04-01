@@ -1,17 +1,19 @@
 using System.Security.AccessControl;
 using ServerPartWhatAmIToDo.Models;
 using ServerPartWhatAmIToDo.Models.DataBase;
+using ServerPartWhatAmIToDo.Models.Goals;
 using ServerPartWhatAmIToDo.Repositories.Protocols;
 
 namespace ServerPartWhatAmIToDo.Services
 {
     public interface IUserService
     {
-        Task<(bool, string?)> Login(string email, string password);
+        Task<(bool, LoginResponse?)> Login(string email, string password);
         Task<IEnumerable<UserEntity>> GetAllUsersAsync();
         Task<UserEntity?> GetUserByIdAsync(int userId);
         Task<UserEntity?> GetUserByEmailAsync(string email);
         Task<long> AddUserAsync(RegisterRequest user);
+        Task<bool> ExistTgUserAsync(int userId);
         Task UpdateUserAsync(UpdateAccountRequest user);
         
         Task UpdateUserAsync(UpdateTgRequest user);
@@ -40,7 +42,7 @@ namespace ServerPartWhatAmIToDo.Services
             _filterRepository = filterRepository;
         }
 
-        public async Task<(bool, string?)> Login(string email, string password)
+        public async Task<(bool, LoginResponse?)> Login(string email, string password)
         {
             try
             {
@@ -48,7 +50,8 @@ namespace ServerPartWhatAmIToDo.Services
                 if (PasswordService.VerifyPassword(password, user.Password))
                 {
                     var tokenString = TokenService.GenerateToken(email).Result;
-                    return (true, tokenString);
+                    var loginResponse = new LoginResponse(user.UserId, user.Name, user.Email, tokenString);
+                    return (true, loginResponse);
                 }
             }
             catch
@@ -83,6 +86,12 @@ namespace ServerPartWhatAmIToDo.Services
             );
             // Здесь можно добавить валидацию или другую бизнес-логику
             return await _userRepository.AddUserAsync(userData);
+        }
+
+        public async Task<bool> ExistTgUserAsync(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            return user.IdTg != null;
         }
 
         public async Task UpdateUserAsync(UpdateAccountRequest user)

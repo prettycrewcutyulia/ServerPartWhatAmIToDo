@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServerPartWhatAmIToDo.Models;
+using ServerPartWhatAmIToDo.Models.Goals;
 using ServerPartWhatAmIToDo.Services;
 
 namespace ServerPartWhatAmIToDo.Controllers;
@@ -23,7 +24,7 @@ public class AuthController : ControllerBase
         // Проверка логина и пароля пользователя
         if (result.Item1)
         {
-            return Ok(new { Token = result.Item2 });
+            return Ok(result.Item2);
         }
         return Unauthorized();
     }
@@ -37,7 +38,8 @@ public class AuthController : ControllerBase
             
            var tokenString = TokenService.GenerateToken(request.Email).Result;
             
-            return Ok(new { Id = userId, Token = tokenString });
+           var result = new LoginResponse(userId, request.Nickname, request.Email, tokenString);
+            return Ok(result);
         }
         catch(Exception ex)
         {

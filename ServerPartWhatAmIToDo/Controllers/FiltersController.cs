@@ -5,7 +5,7 @@ using ServerPartWhatAmIToDo.Services;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
-[Authorize]
+// [Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class FiltersController : ControllerBase
@@ -27,9 +27,9 @@ public class FiltersController : ControllerBase
     }
 
     [HttpPost("create")]
-    public IActionResult CreateFilter([FromBody] FilterRequest newFilter)
+    public IActionResult CreateFilter([FromQuery]int userId, [FromBody] FilterRequest newFilter)
     {
-        var filter = _filterService.AddFilterAsync(newFilter).Result;
+        var filter = _filterService.AddFilterAsync(userId, newFilter).Result;
         return Ok(filter);
     }
 

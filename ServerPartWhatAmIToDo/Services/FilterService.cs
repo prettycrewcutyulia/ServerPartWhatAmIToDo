@@ -11,7 +11,7 @@ namespace ServerPartWhatAmIToDo.Services
        Task<IEnumerable<FilterEntity>> GetAllFiltersAsync();
         Task<FilterEntity?> GetFilterByIdAsync(int filterId);
         Task<IEnumerable<FilterEntity>> GetFiltersByUserIdAsync(int userId);
-        Task<FilterEntity> AddFilterAsync(FilterRequest newFilter);
+        Task<FilterEntity> AddFilterAsync(int userId, FilterRequest newFilter);
         Task<FilterEntity> UpdateFilterAsync(UpdateFilterRequest newFilter);
         Task DeleteFilterAsync(int filterId);
     }
@@ -46,10 +46,10 @@ namespace ServerPartWhatAmIToDo.Services
             return await _filterRepository.GetFiltersByUserIdAsync(userId);
         }
 
-        public async Task<FilterEntity> AddFilterAsync(FilterRequest newFilter)
+        public async Task<FilterEntity> AddFilterAsync(int userId, FilterRequest newFilter)
         {
             var filterEntity = new FilterEntity();
-            filterEntity.UserId = newFilter.UserId;
+            filterEntity.UserId = userId;
             filterEntity.Title = newFilter.Title;
             filterEntity.Color = newFilter.Color;
             

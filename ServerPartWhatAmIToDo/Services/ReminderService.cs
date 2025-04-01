@@ -131,7 +131,14 @@ namespace ServerPartWhatAmIToDo.Services
                         $"Дедлайн для цели {goal.Title} {goal.Deadline.Value.Date:dd-MM-yyyy}";
                     if (user.IdTg.HasValue)
                     {
-                        SendMessageToBot(new SendMessageRequest(user.IdTg.Value, reminder));
+                        try
+                        {
+                            SendMessageToBot(new SendMessageRequest(user.IdTg.Value, reminder));
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Не удалось отправить сообщение");
+                        }
                     }
                 }
             }
@@ -159,15 +166,23 @@ namespace ServerPartWhatAmIToDo.Services
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             HttpClient httpClient = new();
-            var response = await httpClient.PostAsync($"{Environment.GetEnvironmentVariable("BOT_URL")}/send-message", content);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                Console.WriteLine("Message sent successfully.");
+                var response =
+                    await httpClient.PostAsync($"{Environment.GetEnvironmentVariable("BOT_URL")}/send-message",
+                        content);
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Message sent successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to send message. Status code: {response.StatusCode}");
+                }
             }
-            else
+            catch
             {
-                Console.WriteLine($"Failed to send message. Status code: {response.StatusCode}");
+                Console.WriteLine("Не удалось отправить сообщение");
             }
         }
     }

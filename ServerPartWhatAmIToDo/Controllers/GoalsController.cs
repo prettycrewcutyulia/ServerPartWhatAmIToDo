@@ -11,7 +11,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
-[Authorize]
+// [Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class GoalsController : ControllerBase
