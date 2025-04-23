@@ -1,6 +1,3 @@
-using System.Net;
-using System.Net.Mail;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServerPartWhatAmIToDo.Models;
 using ServerPartWhatAmIToDo.Models.Goals;
@@ -28,7 +25,7 @@ public class AuthController : ControllerBase
         {
             return Ok(result.Item2);
         }
-        return Unauthorized();
+        return BadRequest("Login failed");
     }
     
     [HttpPost("register")]

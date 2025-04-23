@@ -70,7 +70,7 @@ public class AccountController : ControllerBase
         }
     }
     
-    [Authorize]
+    // [Authorize]
     [HttpPut("correct")]
     public async Task<IActionResult> VerifyUser([FromBody] UpdateTgRequest request, CancellationToken token)
     {
@@ -80,7 +80,7 @@ public class AccountController : ControllerBase
             if (user != null)
             {
 
-                _userService.UpdateUserAsync(request).Wait();
+                await _userService.UpdateUserAsync(request);
                 return Ok();
             }
             
@@ -95,8 +95,8 @@ public class AccountController : ControllerBase
     
     [Authorize]
     [HttpGet("tgExist/{id}")]
-    public async Task<IActionResult> GetTgExist([FromQuery] int userId, CancellationToken token) {
-        var res = await _userService.ExistTgUserAsync(userId);
+    public async Task<IActionResult> GetTgExist(int id, CancellationToken token) {
+        var res = await _userService.ExistTgUserAsync(id);
 
         if (res)
         {
