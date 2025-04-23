@@ -19,7 +19,7 @@ public class FiltersController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAllFilters([FromQuery] int userId)
+    public IActionResult GetAllFilters([FromQuery] int userId, CancellationToken token)
     {
         
         var filters =  _filterService.GetFiltersByUserIdAsync(userId).Result;
@@ -27,14 +27,14 @@ public class FiltersController : ControllerBase
     }
 
     [HttpPost("create")]
-    public IActionResult CreateFilter([FromQuery]int userId, [FromBody] FilterRequest newFilter)
+    public IActionResult CreateFilter([FromQuery]int userId, [FromBody] FilterRequest newFilter, CancellationToken token)
     {
         var filter = _filterService.AddFilterAsync(userId, newFilter).Result;
         return Ok(filter);
     }
 
     [HttpPut("update")]
-    public IActionResult UpdateFilter([FromBody] UpdateFilterRequest request)
+    public IActionResult UpdateFilter([FromBody] UpdateFilterRequest request, CancellationToken token)
     {
         var filter = _filterService.UpdateFilterAsync(request).Result;
 
@@ -42,7 +42,7 @@ public class FiltersController : ControllerBase
     }
     
     [HttpDelete("delete")]
-    public IActionResult DeleteFilter([FromQuery] int id)
+    public IActionResult DeleteFilter([FromQuery] int id, CancellationToken token)
     {
        _filterService.DeleteFilterAsync(id).Wait();
         return Ok(new { Message = "Filter deleted successfully" });

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using ServerPartWhatAmIToDo.Models;
 using ServerPartWhatAmIToDo.Services;
 
@@ -6,6 +7,7 @@ namespace ServerPartWhatAmIToDo.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class RemindersController : ControllerBase
@@ -18,28 +20,28 @@ public class RemindersController : ControllerBase
     }
 
     [HttpGet("{userId}")]
-    public IActionResult GetRemindersByUserId(int userId)
+    public async Task<IActionResult> GetRemindersByUserId(int userId, CancellationToken token)
     {
-        var reminders =  _reminderService.GetRemindersByUserIdAsync(userId).Result;
+        var reminders =  await _reminderService.GetRemindersByUserIdAsync(userId);
         return Ok(reminders);
     }
 
     [HttpPost]
-    public IActionResult AddReminder([FromBody] ReminderRequest reminder)
+    public async Task<IActionResult> AddReminder([FromBody] ReminderRequest reminder, CancellationToken token)
     {
         if (reminder == null)
         {
             return BadRequest("Reminder cannot be null.");
         }
 
-        int reminderId = _reminderService.AddReminderAsync(reminder).Result;
+        int reminderId = await _reminderService.AddReminderAsync(reminder);
         return Ok(reminderId);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteReminder(int id)
+    public async Task<IActionResult> DeleteReminder(int id, CancellationToken token)
     { 
-        _reminderService.DeleteReminderAsync(id).Wait();
+        await _reminderService.DeleteReminderAsync(id);
         return Ok();
     }
 }

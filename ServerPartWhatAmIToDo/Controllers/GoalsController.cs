@@ -23,22 +23,22 @@ public class GoalsController : ControllerBase
         _goalService = goalService;
     }
     [HttpGet]
-    public IActionResult GetAllGoals([FromQuery] int userId)
+    public async Task<IActionResult> GetAllGoals([FromQuery] int userId, CancellationToken token)
     {
         // Фильтрация целей по userId
-        var goals = _goalService.GetGoalsByUserIdAsync(userId).Result;
+        var goals = await _goalService.GetGoalsByUserIdAsync(userId);
         return Ok(goals);
     }
 
     [HttpPost("create")]
-    public IActionResult CreateGoal([FromBody] GoalRequest newGoal)
+    public async Task<IActionResult> CreateGoal([FromBody] GoalRequest newGoal, CancellationToken token)
     {
-        _goalService.AddGoalAsync(newGoal).Wait();
+        await _goalService.AddGoalAsync(newGoal);
         return Ok(new { Message = "Goal created successfully" });
     }
     
     [HttpPost("get-ai")]
-    public async Task<IActionResult> GetGoalUsingAI([FromBody] AiGoalRequest request)
+    public async Task<IActionResult> GetGoalUsingAI([FromBody] AiGoalRequest request, CancellationToken token)
     {
         var response = await Yandex_GPT(request.Context);
         return Ok(response);
@@ -46,17 +46,17 @@ public class GoalsController : ControllerBase
 
 
     [HttpPut("update/{id}")]
-    public IActionResult UpdateGoal(int id, [FromBody] GoalRequest request)
+    public async Task<IActionResult> UpdateGoal(int id, [FromBody] GoalRequest request, CancellationToken token)
     {
-        _goalService.UpdateGoalAsync(id, request).Wait();
+        await _goalService.UpdateGoalAsync(id, request);
 
         return Ok(new { Message = "Goal updated successfully" });
     }
     
     [HttpDelete("delete/{id}")]
-    public IActionResult DeleteGoal(int id)
+    public async Task<IActionResult> DeleteGoal(int id, CancellationToken token)
     {
-       _goalService.DeleteGoalAsync(id).Wait();
+       await _goalService.DeleteGoalAsync(id);
         return Ok(new { Message = "Goal deleted successfully" });
     }
     
@@ -66,9 +66,9 @@ public class GoalsController : ControllerBase
         DotNetEnv.Env.Load();
 
         // Получите токен из переменных окружения
-        string token = Environment.GetEnvironmentVariable("OAUTH_TOKEN");
+        string authToken = Environment.GetEnvironmentVariable("OAUTH_TOKEN");
         string gptUrl = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion";
-        string iamToken = await GetIamToken(token);
+        string iamToken = await GetIamToken(authToken);
             
         var client = new HttpClient();
             
@@ -118,7 +118,7 @@ public class GoalsController : ControllerBase
             
             if (retryCount < maxRetries)
             {
-                iamToken = await GetIamToken(token);
+                iamToken = await GetIamToken(authToken);
                 client.DefaultRequestHeaders.Remove("Authorization");
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {iamToken}");
             }

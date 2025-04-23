@@ -1,10 +1,16 @@
+using System.Net;
+using System.Net.Mail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MimeKit;
+using MailKit.Net.Smtp;
 using ServerPartWhatAmIToDo.Models;
 using ServerPartWhatAmIToDo.Services;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
+// [Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
@@ -16,14 +22,14 @@ public class AccountController : ControllerBase
         _userService = userService;
     }
     
-    [HttpDelete("update")]
-    public IActionResult UpdateAccount([FromBody] UpdateAccountRequest request)
+    [HttpPut("update")]
+    public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountRequest request, CancellationToken token)
     {
         try
         {
             // Логика для удаления аккаунта
-            _userService.UpdateUserAsync(request).Wait();
-            return Ok(new { Message = "Account successfully deleted" });
+            await _userService.UpdateUserAsync(request);
+            return Ok(new { Message = "Account successfully updated" });
         }
         catch
         {
@@ -32,12 +38,15 @@ public class AccountController : ControllerBase
     }
     
     [HttpDelete("delete")]
-    public IActionResult DeleteAccount([FromBody] DeleteAccountRequest request)
+    public async Task<IActionResult> DeleteAccount(
+        [FromBody] DeleteAccountRequest request, 
+        CancellationToken token
+        )
     {
         try
         {
             // Логика для удаления аккаунта
-            var userDeleted = _userService.DeleteUserAsync(request.UserId);
+            await _userService.DeleteUserAsync(request.UserId);
             return Ok(new { Message = "Account successfully deleted" });
         }
         catch
@@ -47,12 +56,12 @@ public class AccountController : ControllerBase
     }
     
     [HttpPut("update/tg")]
-    public IActionResult UpdateTg([FromBody] UpdateTgRequest request)
+    public async Task<IActionResult> UpdateTg([FromBody] UpdateTgRequest request, CancellationToken token)
     {
         try
         {
             // Логика для удаления аккаунта
-            _userService.UpdateUserAsync(request).Wait();
+            await _userService.UpdateUserAsync(request);
             return Ok(new { Message = "Tg added successfully" });
         }
         catch
@@ -63,11 +72,11 @@ public class AccountController : ControllerBase
     
     [Authorize]
     [HttpPut("correct")]
-    public IActionResult VerifyUser([FromBody] UpdateTgRequest request)
+    public async Task<IActionResult> VerifyUser([FromBody] UpdateTgRequest request, CancellationToken token)
     {
         try
         {
-            var user = _userService.GetUserByEmailAsync(request.Email).Result;
+            var user = await _userService.GetUserByEmailAsync(request.Email);
             if (user != null)
             {
 
@@ -86,8 +95,8 @@ public class AccountController : ControllerBase
     
     [Authorize]
     [HttpGet("tgExist/{id}")]
-    public IActionResult GetTgExist([FromQuery] int userId) {
-        var res = _userService.ExistTgUserAsync(userId).Result;
+    public async Task<IActionResult> GetTgExist([FromQuery] int userId, CancellationToken token) {
+        var res = await _userService.ExistTgUserAsync(userId);
 
         if (res)
         {

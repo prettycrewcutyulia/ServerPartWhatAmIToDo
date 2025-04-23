@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Mail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ServerPartWhatAmIToDo.Models;
@@ -18,9 +20,9 @@ public class AuthController : ControllerBase
     }
     
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken token)
     {
-        var result = _userService.Login(email: request.Email, password: request.Password).Result;
+        var result = await _userService.Login(email: request.Email, password: request.Password);
         // Проверка логина и пароля пользователя
         if (result.Item1)
         {
@@ -30,13 +32,13 @@ public class AuthController : ControllerBase
     }
     
     [HttpPost("register")]
-    public IActionResult Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken token)
     {
         try
         {
-           var userId = _userService.AddUserAsync(request).Result;
+           var userId = await _userService.AddUserAsync(request);
             
-           var tokenString = TokenService.GenerateToken(request.Email).Result;
+           var tokenString = await TokenService.GenerateToken(request.Email);
             
            var result = new LoginResponse(userId, request.Nickname, request.Email, tokenString);
             return Ok(result);
@@ -48,21 +50,42 @@ public class AuthController : ControllerBase
         }
     }
     
-    // [HttpPost("resetpassword")]
-    // public IActionResult ResetPassword([FromBody] ResetPasswordRequest request)
+    // [HttpPost("send-password-reset")]
+    // public IActionResult SendPasswordResetEmail([FromBody] string email)
     // {
-    //     
-    //     var resetPasswordUrl = Url.Action("ResetPasswordView", "Auth", new { }, Request.Scheme);
+    //     if (string.IsNullOrWhiteSpace(email))
+    //     {
+    //         return BadRequest("Email must be provided.");
+    //     }
     //
-    //     return Ok(new { Message = "Password reset link sent", ResetLink = resetPasswordUrl });
+    //     // Вызов метода отправки письма
+    //     SendPasswordResetEmailService(email);
+    //
+    //     return Ok("Password reset email sent.");
     // }
     //
-    // [HttpGet("resetpassword")]
-    // public IActionResult ResetPassword()
+    // public void SendPasswordResetEmailService(string toEmail)
     // {
-    //     // Возвращает представление для сброса пароля,
-    //     // если вы планируете обслуживать HTML страницу.
-    //     return  Microsoft.AspNetCore.Mvc.Controller.View("ResetPasswordView");
+    //     string fromEmail = "gudoshnikova11@gmail.com";
+    //     string fromPassword = "TOP27u12g2002";
+    //     string subject = "Password Reset Request";
+    //     string body = $"Please reset your password using the following link: 1111111";
+    //
+    //     var smtpClient = new SmtpClient("smtp.gmail.com")
+    //     {
+    //         Port = 587, // или другой порт, в зависимости от вашего SMTP сервера
+    //         Credentials = new NetworkCredential(fromEmail, fromPassword),
+    //         EnableSsl = true,
+    //     };
+    //
+    //     try
+    //     {
+    //         smtpClient.Send(fromEmail, toEmail, subject, body);
+    //         Console.WriteLine("Password reset email sent successfully.");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine($"Error sending email: {ex.Message}");
+    //     }
     // }
-    
 }

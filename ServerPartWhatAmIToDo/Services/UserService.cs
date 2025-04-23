@@ -120,28 +120,28 @@ namespace ServerPartWhatAmIToDo.Services
 
         public async Task DeleteUserAsync(int userId)
         {
-            var reminders = await _reminderRepository.GetRemindersByUserIdAsync(userId).ConfigureAwait(true);
+            var reminders = await _reminderRepository.GetRemindersByUserIdAsync(userId);
             foreach (var reminder in reminders)
             {
-                await _reminderRepository.DeleteReminderAsync(reminder.ReminderId).ConfigureAwait(true);
+                await _reminderRepository.DeleteReminderAsync(reminder.ReminderId);
             }
             
-            var deadlines = await _deadlineRepository.GetDeadlinesByUserIdAsync(userId).ConfigureAwait(true);
+            var deadlines = await _deadlineRepository.GetDeadlinesByUserIdAsync(userId);
             foreach (var deadline in deadlines)
             {
-                await _deadlineRepository.DeleteDeadlineAsync(deadline.DeadlineId).ConfigureAwait(true);
+                await _deadlineRepository.DeleteDeadlineAsync(deadline.DeadlineId);
             }
             
-            var goals = await _goalRepository.GetGoalsByUserIdAsync(userId).ConfigureAwait(true);
+            var goals = await _goalRepository.GetGoalsByUserIdAsync(userId);
             foreach (var goal in goals)
             {
-                await _goalRepository.DeleteGoalAsync(goal.GoalId).ConfigureAwait(true);
+                await _goalRepository.DeleteGoalAsync(goal.GoalId);
             }
             
-            var filters = await _filterRepository.GetFiltersByUserIdAsync(userId).ConfigureAwait(true);
+            var filters = await _filterRepository.GetFiltersByUserIdAsync(userId);
             foreach (var filter in filters)
             {
-                await _filterRepository.DeleteFilterAsync(filter.FilterId).ConfigureAwait(true);
+                await _filterRepository.DeleteFilterAsync(filter.FilterId);
             }
             // Здесь можно добавить проверку существования пользователя или другие условия
             await _userRepository.DeleteUserAsync(userId);
