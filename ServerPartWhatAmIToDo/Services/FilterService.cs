@@ -7,13 +7,13 @@ namespace ServerPartWhatAmIToDo.Services
 {
     public interface IFilterService
     {
-        bool DoesIdExist(int id);
-       Task<IEnumerable<FilterEntity>> GetAllFiltersAsync();
-        Task<FilterEntity?> GetFilterByIdAsync(int filterId);
-        Task<IEnumerable<FilterEntity>> GetFiltersByUserIdAsync(int userId);
-        Task<FilterEntity> AddFilterAsync(int userId, FilterRequest newFilter);
-        Task<FilterEntity> UpdateFilterAsync(UpdateFilterRequest newFilter);
-        Task DeleteFilterAsync(int filterId);
+        bool DoesIdExist(int id, CancellationToken token);
+       Task<IEnumerable<FilterEntity>> GetAllFiltersAsync(CancellationToken token);
+        Task<FilterEntity?> GetFilterByIdAsync(int filterId, CancellationToken token);
+        Task<IEnumerable<FilterEntity>> GetFiltersByUserIdAsync(int userId, CancellationToken token);
+        Task<FilterEntity> AddFilterAsync(int userId, FilterRequest newFilter, CancellationToken token);
+        Task<FilterEntity> UpdateFilterAsync(UpdateFilterRequest newFilter, CancellationToken token);
+        Task DeleteFilterAsync(int filterId, CancellationToken token);
     }
     
     public class FilterService : IFilterService
@@ -25,48 +25,48 @@ namespace ServerPartWhatAmIToDo.Services
             _filterRepository = filterRepository;
         }
         
-        public bool DoesIdExist(int id)
+        public bool DoesIdExist(int id, CancellationToken token)
         {
-            var result = GetFilterByIdAsync(id).Result;
+            var result = GetFilterByIdAsync(id, token).Result;
             return result != null;
         }
 
-        public async Task<IEnumerable<FilterEntity>> GetAllFiltersAsync()
+        public async Task<IEnumerable<FilterEntity>> GetAllFiltersAsync(CancellationToken token)
         {
-            return await _filterRepository.GetAllFiltersAsync();
+            return await _filterRepository.GetAllFiltersAsync(token);
         }
 
-        public async Task<FilterEntity?> GetFilterByIdAsync(int filterId)
+        public async Task<FilterEntity?> GetFilterByIdAsync(int filterId, CancellationToken token)
         {
-            return await _filterRepository.GetFilterByIdAsync(filterId);
+            return await _filterRepository.GetFilterByIdAsync(filterId, token);
         }
 
-        public async Task<IEnumerable<FilterEntity>> GetFiltersByUserIdAsync(int userId)
+        public async Task<IEnumerable<FilterEntity>> GetFiltersByUserIdAsync(int userId, CancellationToken token)
         {
-            return await _filterRepository.GetFiltersByUserIdAsync(userId);
+            return await _filterRepository.GetFiltersByUserIdAsync(userId, token);
         }
 
-        public async Task<FilterEntity> AddFilterAsync(int userId, FilterRequest newFilter)
+        public async Task<FilterEntity> AddFilterAsync(int userId, FilterRequest newFilter, CancellationToken token)
         {
             var filterEntity = new FilterEntity();
             filterEntity.UserId = userId;
             filterEntity.Title = newFilter.Title;
             filterEntity.Color = newFilter.Color;
             
-            return await _filterRepository.AddFilterAsync(filterEntity);
+            return await _filterRepository.AddFilterAsync(filterEntity, token);
         }
 
-        public async Task<FilterEntity> UpdateFilterAsync(UpdateFilterRequest newFilter)
+        public async Task<FilterEntity> UpdateFilterAsync(UpdateFilterRequest newFilter, CancellationToken token)
         {
-            var filterEntity = await _filterRepository.GetFilterByIdAsync(newFilter.Id);
+            var filterEntity = await _filterRepository.GetFilterByIdAsync(newFilter.Id, token);
             filterEntity.Title = newFilter.Title;
             filterEntity.Color = newFilter.Color;
-            return await _filterRepository.UpdateFilterAsync(filterEntity);
+            return await _filterRepository.UpdateFilterAsync(filterEntity, token);
         }
 
-        public async Task DeleteFilterAsync(int filterId)
+        public async Task DeleteFilterAsync(int filterId, CancellationToken token)
         {
-            await _filterRepository.DeleteFilterAsync(filterId);
+            await _filterRepository.DeleteFilterAsync(filterId, token);
         }
     }
 }

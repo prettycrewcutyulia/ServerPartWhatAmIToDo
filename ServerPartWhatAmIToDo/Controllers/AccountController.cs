@@ -1,16 +1,11 @@
-using System.Net;
-using System.Net.Mail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MimeKit;
-using MailKit.Net.Smtp;
 using ServerPartWhatAmIToDo.Models;
 using ServerPartWhatAmIToDo.Services;
-using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
-// [Authorize]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
@@ -28,7 +23,7 @@ public class AccountController : ControllerBase
         try
         {
             // Логика для удаления аккаунта
-            await _userService.UpdateUserAsync(request);
+            await _userService.UpdateUserAsync(request, token);
             return Ok(new { Message = "Account successfully updated" });
         }
         catch
@@ -46,7 +41,7 @@ public class AccountController : ControllerBase
         try
         {
             // Логика для удаления аккаунта
-            await _userService.DeleteUserAsync(request.UserId);
+            await _userService.DeleteUserAsync(request.UserId, token);
             return Ok(new { Message = "Account successfully deleted" });
         }
         catch
@@ -60,8 +55,8 @@ public class AccountController : ControllerBase
     {
         try
         {
-            // Логика для удаления аккаунта
-            await _userService.UpdateUserAsync(request);
+            // Логика для обновления аккаунта
+            await _userService.UpdateUserAsync(request, token);
             return Ok(new { Message = "Tg added successfully" });
         }
         catch
@@ -70,17 +65,16 @@ public class AccountController : ControllerBase
         }
     }
     
-    // [Authorize]
     [HttpPut("correct")]
     public async Task<IActionResult> VerifyUser([FromBody] UpdateTgRequest request, CancellationToken token)
     {
         try
         {
-            var user = await _userService.GetUserByEmailAsync(request.Email);
+            var user = await _userService.GetUserByEmailAsync(request.Email, token);
             if (user != null)
             {
 
-                await _userService.UpdateUserAsync(request);
+                await _userService.UpdateUserAsync(request, token);
                 return Ok();
             }
             
@@ -92,11 +86,10 @@ public class AccountController : ControllerBase
             return BadRequest("Invalid email");
         }
     }
-    
-    [Authorize]
+
     [HttpGet("tgExist/{id}")]
     public async Task<IActionResult> GetTgExist(int id, CancellationToken token) {
-        var res = await _userService.ExistTgUserAsync(id);
+        var res = await _userService.ExistTgUserAsync(id, token);
 
         if (res)
         {

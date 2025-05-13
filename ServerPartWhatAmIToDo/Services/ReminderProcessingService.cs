@@ -28,7 +28,7 @@ public class ReminderProcessingService : IHostedService
         {
             var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
             Console.WriteLine("Processing reminders...");
-            await reminderService.ProcessRemindersAsync();
+            await reminderService.ProcessRemindersAsync(CancellationToken.None);
         }
     }
 

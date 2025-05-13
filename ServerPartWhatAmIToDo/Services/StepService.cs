@@ -7,11 +7,11 @@ namespace ServerPartWhatAmIToDo.Services
 {
     public interface IStepService
     {
-        Task<IEnumerable<StepEntity>> GetAllStepsAsync();
-        Task<StepEntity?> GetStepByIdAsync(int stepId);
-        Task<int> AddStepAsync(Step step);
-        Task UpdateStepAsync(StepEntity step);
-        Task DeleteStepAsync(int stepId);
+        Task<IEnumerable<StepEntity>> GetAllStepsAsync(CancellationToken cancellationToken);
+        Task<StepEntity?> GetStepByIdAsync(int stepId, CancellationToken cancellationToken);
+        Task<int> AddStepAsync(Step step, CancellationToken cancellationToken);
+        Task UpdateStepAsync(StepEntity step, CancellationToken cancellationToken);
+        Task DeleteStepAsync(int stepId, CancellationToken cancellationToken);
     }
     
     public class StepService : IStepService
@@ -23,35 +23,33 @@ namespace ServerPartWhatAmIToDo.Services
             _stepRepository = stepRepository;
         }
 
-        public async Task<IEnumerable<StepEntity>> GetAllStepsAsync()
+        public async Task<IEnumerable<StepEntity>> GetAllStepsAsync(CancellationToken cancellationToken)
         {
-            return await _stepRepository.GetAllStepsAsync();
+            return await _stepRepository.GetAllStepsAsync(cancellationToken);
         }
 
-        public async Task<StepEntity?> GetStepByIdAsync(int stepId)
+        public async Task<StepEntity?> GetStepByIdAsync(int stepId, CancellationToken cancellationToken)
         {
-            return await _stepRepository.GetStepByIdAsync(stepId);
+            return await _stepRepository.GetStepByIdAsync(stepId, cancellationToken);
         }
 
-        public async Task<int> AddStepAsync(Step step)
+        public async Task<int> AddStepAsync(Step step, CancellationToken cancellationToken)
         {
             var entity = new StepEntity();
             entity.Title = step.Title;
             entity.IsCompleted = step.IsCompleted;
             entity.Deadline = step.Deadline;
-            return await _stepRepository.AddStepAsync(entity);
+            return await _stepRepository.AddStepAsync(entity, cancellationToken);
         }
 
-        public async Task UpdateStepAsync(StepEntity step)
+        public async Task UpdateStepAsync(StepEntity step, CancellationToken cancellationToken)
         {
-            // Здесь можно добавить проверку существования шага и бизнес-логику перед обновлением
-            await _stepRepository.UpdateStepAsync(step);
+            await _stepRepository.UpdateStepAsync(step, cancellationToken);
         }
 
-        public async Task DeleteStepAsync(int stepId)
+        public async Task DeleteStepAsync(int stepId, CancellationToken cancellationToken)
         {
-            // Здесь можно добавить проверку существования шага перед удалением или другие условия
-            await _stepRepository.DeleteStepAsync(stepId);
+            await _stepRepository.DeleteStepAsync(stepId, cancellationToken);
         }
     }
 }

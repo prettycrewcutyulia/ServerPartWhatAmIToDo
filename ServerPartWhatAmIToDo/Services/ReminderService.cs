@@ -9,12 +9,12 @@ namespace ServerPartWhatAmIToDo.Services
 {
     public interface IReminderService
     {
-        Task<IEnumerable<ReminderEntity>> GetAllRemindersAsync();
-        Task<ReminderEntity> GetReminderByIdAsync(int reminderId);
-        Task<IEnumerable<ReminderEntity>> GetRemindersByUserIdAsync(int userId);
-        Task<int> AddReminderAsync(ReminderRequest reminder);
-        Task DeleteReminderAsync(int reminderId);
-        Task ProcessRemindersAsync();
+        Task<IEnumerable<ReminderEntity>> GetAllRemindersAsync(CancellationToken cancellationToken);
+        Task<ReminderEntity> GetReminderByIdAsync(int reminderId, CancellationToken cancellationToken);
+        Task<IEnumerable<ReminderEntity>> GetRemindersByUserIdAsync(int userId, CancellationToken cancellationToken);
+        Task<int> AddReminderAsync(ReminderRequest reminder, CancellationToken cancellationToken);
+        Task DeleteReminderAsync(int reminderId, CancellationToken cancellationToken);
+        Task ProcessRemindersAsync(CancellationToken cancellationToken);
 
     }
     
@@ -44,41 +44,39 @@ namespace ServerPartWhatAmIToDo.Services
             Console.WriteLine("Deadline reminder service started.");
         }
 
-        public async Task<IEnumerable<ReminderEntity>> GetAllRemindersAsync()
+        public async Task<IEnumerable<ReminderEntity>> GetAllRemindersAsync(CancellationToken cancellationToken)
         {
-            return await _reminderRepository.GetAllRemindersAsync();
+            return await _reminderRepository.GetAllRemindersAsync(cancellationToken);
         }
 
-        public async Task<ReminderEntity> GetReminderByIdAsync(int reminderId)
+        public async Task<ReminderEntity> GetReminderByIdAsync(int reminderId, CancellationToken cancellationToken)
         {
-            return await _reminderRepository.GetReminderByIdAsync(reminderId);
+            return await _reminderRepository.GetReminderByIdAsync(reminderId, cancellationToken);
         }
 
-        public async Task<IEnumerable<ReminderEntity>> GetRemindersByUserIdAsync(int userId)
+        public async Task<IEnumerable<ReminderEntity>> GetRemindersByUserIdAsync(int userId, CancellationToken cancellationToken)
         {
-            return await _reminderRepository.GetRemindersByUserIdAsync(userId);
+            return await _reminderRepository.GetRemindersByUserIdAsync(userId, cancellationToken);
         }
 
-        public async Task<int> AddReminderAsync(ReminderRequest reminder)
+        public async Task<int> AddReminderAsync(ReminderRequest reminder, CancellationToken cancellationToken)
         {
             var reminderEntity = new ReminderEntity();
             reminderEntity.UserId = reminder.UserId;
-            reminderEntity.DaysCount = reminder.CountDays;
-            return await _reminderRepository.AddReminderAsync(reminderEntity);
+            reminderEntity.DaysCount = reminder.DaysCount;
+            return await _reminderRepository.AddReminderAsync(reminderEntity, cancellationToken);
         }
 
-        public async Task DeleteReminderAsync(int reminderId)
+        public async Task DeleteReminderAsync(int reminderId, CancellationToken cancellationToken)
         {
-            await _reminderRepository.DeleteReminderAsync(reminderId);
+            await _reminderRepository.DeleteReminderAsync(reminderId, cancellationToken);
         }
         
-        
-        
-        public async Task ProcessRemindersAsync()
+        public async Task ProcessRemindersAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var reminders = await _reminderRepository.GetAllRemindersAsync();
+                var reminders = await _reminderRepository.GetAllRemindersAsync(cancellationToken);
                 // Группировка напоминаний по `userId`
                 var groupedReminders = reminders
                     .GroupBy(r => r.UserId)
@@ -89,16 +87,16 @@ namespace ServerPartWhatAmIToDo.Services
                     });
                 foreach (var reminder in groupedReminders)
                 {
-                    var userDeadlines = await _deadlineService.GetDeadlinesForUserAsync(reminder.UserId, reminder.MaxDaysCount);
+                    var userDeadlines = await _deadlineService.GetDeadlinesForUserAsync(reminder.UserId, reminder.MaxDaysCount, cancellationToken);
                     
                     foreach (var deadline in userDeadlines)
                     {
-                        var userReminder = await _reminderRepository.GetRemindersByUserIdAsync(deadline.UserId);
+                        var userReminder = await _reminderRepository.GetRemindersByUserIdAsync(deadline.UserId, cancellationToken);
                         foreach (var reminderEntity in userReminder)
                         {
                             if (ShouldNotify(deadline, reminderEntity.DaysCount))
                             {
-                                NotifyUser(deadline.UserId, deadline.GoalId, deadline.StepId);
+                                NotifyUser(deadline.UserId, deadline.GoalId, deadline.StepId, cancellationToken);
 
                                 break; // Выходим из внутреннего цикла, если уведомление отправлено
                             }
@@ -118,12 +116,12 @@ namespace ServerPartWhatAmIToDo.Services
             return DateTime.Now.Date >= notificationDate;
         }
 
-        private void NotifyUser(int userId, int? goalId, int? stepId)
+        private void NotifyUser(int userId, int? goalId, int? stepId, CancellationToken token)
         {
-            var user = _userService.GetUserByIdAsync(userId).Result;
+            var user = _userService.GetUserByIdAsync(userId, token).Result;
             if (goalId.HasValue)
             {
-                var goal = _goalService.GetGoalByIdAsync(goalId.Value).Result;
+                var goal = _goalService.GetGoalByIdAsync(goalId.Value, token).Result;
                 if (goal.Deadline.HasValue)
                 {
                     var reminder =
@@ -145,7 +143,7 @@ namespace ServerPartWhatAmIToDo.Services
             
             if (stepId.HasValue)
             {
-                var step = _stepService.GetStepByIdAsync(stepId.Value).Result;
+                var step = _stepService.GetStepByIdAsync(stepId.Value, token).Result;
                 if (step.Deadline.HasValue)
                 {
                     var reminder =

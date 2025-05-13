@@ -15,12 +15,12 @@ namespace ServerPartWhatAmIToDo.Repositories
             _stepRepository = stepRepository;
         }
 
-        public async Task<IEnumerable<GoalEntity>> GetAllGoalsAsync()
+        public async Task<IEnumerable<GoalEntity>> GetAllGoalsAsync(CancellationToken cancellationToken)
         {
             return await _context.Goals.ToListAsync();
         }
 
-        public async Task<GoalEntity> GetGoalByIdAsync(int goalId)
+        public async Task<GoalEntity> GetGoalByIdAsync(int goalId, CancellationToken cancellationToken)
         {
             
             var result = await _context.Goals.FindAsync(goalId);
@@ -32,17 +32,17 @@ namespace ServerPartWhatAmIToDo.Repositories
             return result;
         }
 
-        public async Task<IEnumerable<GoalEntity>> GetGoalsByUserIdAsync(int userId)
+        public async Task<IEnumerable<GoalEntity>> GetGoalsByUserIdAsync(int userId, CancellationToken cancellationToken)
         {
             var goals = await _context.Goals.Where(goal => goal.UserId == userId).ToListAsync();
             goals.Sort((x, y) => x.GoalId.CompareTo(y.GoalId));
             return goals;
         }
 
-        public async Task<IEnumerable<StepEntity>> GetStepsByGoalIdAsync(int goalId)
+        public async Task<IEnumerable<StepEntity>> GetStepsByGoalIdAsync(int goalId, CancellationToken cancellationToken)
         {
             // Получите цель и проверьте, что она существует
-            var goal = await GetGoalByIdAsync(goalId);
+            var goal = await GetGoalByIdAsync(goalId, cancellationToken);
             if (goal == null)
             {
                 throw new Exception("Goal not found");
@@ -52,7 +52,7 @@ namespace ServerPartWhatAmIToDo.Repositories
             var steps = new List<StepEntity>();
             foreach (var stepId in goal.IdSteps)
             {
-                var step = await _stepRepository.GetStepByIdAsync(stepId);
+                var step = await _stepRepository.GetStepByIdAsync(stepId, cancellationToken);
                 if (step != null)
                 {
                     steps.Add(step);
@@ -63,28 +63,28 @@ namespace ServerPartWhatAmIToDo.Repositories
             return steps;
         }
 
-        public async Task<int> AddGoalAsync(GoalEntity goal)
+        public async Task<int> AddGoalAsync(GoalEntity goal, CancellationToken cancellationToken)
         {
             await _context.Goals.AddAsync(goal);
             await _context.SaveChangesAsync();
             return goal.GoalId;
         }
 
-        public async Task UpdateGoalAsync(GoalEntity goal)
+        public async Task UpdateGoalAsync(GoalEntity goal, CancellationToken cancellationToken)
         {
             _context.Goals.Update(goal);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteGoalAsync(int goalId)
+        public async Task DeleteGoalAsync(int goalId, CancellationToken cancellationToken)
         {
-            var goal = await GetGoalByIdAsync(goalId);
+            var goal = await GetGoalByIdAsync(goalId, cancellationToken);
             
             if (goal != null)
             {
                 foreach (var step in goal.IdSteps)
                 {
-                    await _stepRepository.DeleteStepAsync(step);
+                    await _stepRepository.DeleteStepAsync(step, cancellationToken);
                 }
                 
                 _context.Goals.Remove(goal);

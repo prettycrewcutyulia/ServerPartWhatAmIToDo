@@ -5,11 +5,11 @@ namespace ServerPartWhatAmIToDo.Repositories.Protocols
 {
     public interface IUserRepository
     {
-        Task<IEnumerable<UserEntity>> GetAllUsersAsync();
-        Task<UserEntity> GetUserByIdAsync(int userId);
-        Task<UserEntity> GetUserByEmailAsync(string email);
-        Task<long> AddUserAsync(User user);
-        Task UpdateUserAsync(UserEntity user);
-        Task DeleteUserAsync(int userId);
+        Task<IEnumerable<UserEntity>> GetAllUsersAsync(CancellationToken cancellationToken);
+        Task<UserEntity> GetUserByIdAsync(int userId, CancellationToken cancellationToken);
+        Task<UserEntity> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
+        Task<long> AddUserAsync(User user, CancellationToken cancellationToken);
+        Task UpdateUserAsync(UserEntity user, CancellationToken cancellationToken);
+        Task DeleteUserAsync(int userId, CancellationToken cancellationToken);
     }
 }

@@ -7,12 +7,12 @@ namespace ServerPartWhatAmIToDo.Services
 {
     public interface IGoalService
     {
-        Task<IEnumerable<GoalEntity>> GetAllGoalsAsync();
-        Task<GoalEntity> GetGoalByIdAsync(int goalId);
-        Task<IEnumerable<Goal>> GetGoalsByUserIdAsync(int userId);
-        Task AddGoalAsync(GoalRequest goal);
-        Task UpdateGoalAsync(int goalId, GoalRequest request);
-        Task DeleteGoalAsync(int goalId);
+        Task<IEnumerable<GoalEntity>> GetAllGoalsAsync(CancellationToken token);
+        Task<GoalEntity> GetGoalByIdAsync(int goalId, CancellationToken token);
+        Task<IEnumerable<Goal>> GetGoalsByUserIdAsync(int userId, CancellationToken token);
+        Task AddGoalAsync(GoalRequest goal, CancellationToken token);
+        Task UpdateGoalAsync(int goalId, GoalRequest request, CancellationToken token);
+        Task DeleteGoalAsync(int goalId, CancellationToken token);
     }
     
     public class GoalService : IGoalService
@@ -36,23 +36,23 @@ namespace ServerPartWhatAmIToDo.Services
             _filterService = filterService;
         }
 
-        public async Task<IEnumerable<GoalEntity>> GetAllGoalsAsync()
+        public async Task<IEnumerable<GoalEntity>> GetAllGoalsAsync(CancellationToken token)
         {
-            return await _goalRepository.GetAllGoalsAsync();
+            return await _goalRepository.GetAllGoalsAsync(token);
         }
 
-        public async Task<GoalEntity> GetGoalByIdAsync(int goalId)
+        public async Task<GoalEntity> GetGoalByIdAsync(int goalId, CancellationToken token)
         {
-            return await _goalRepository.GetGoalByIdAsync(goalId);
+            return await _goalRepository.GetGoalByIdAsync(goalId, token);
         }
 
-        public async Task<IEnumerable<Goal>> GetGoalsByUserIdAsync(int userId)
+        public async Task<IEnumerable<Goal>> GetGoalsByUserIdAsync(int userId, CancellationToken token)
         {
             var results = new List<Goal>();
-            var goals = await _goalRepository.GetGoalsByUserIdAsync(userId);
+            var goals = await _goalRepository.GetGoalsByUserIdAsync(userId, token);
             foreach (var goal in goals)
             {
-                var steps = await _goalRepository.GetStepsByGoalIdAsync(goal.GoalId);
+                var steps = await _goalRepository.GetStepsByGoalIdAsync(goal.GoalId, token);
                 var goalRes = new Goal(goal, steps);
                 
                 results.Add(goalRes);
@@ -61,32 +61,32 @@ namespace ServerPartWhatAmIToDo.Services
             return results;
         }
 
-        public async Task AddGoalAsync(GoalRequest goal)
+        public async Task AddGoalAsync(GoalRequest goal, CancellationToken token)
         {
             var stepsIds = new List<int>();
             foreach (var step in goal.Steps)
             {
-                var id = await _stepService.AddStepAsync(new Step(step));
+                var id = await _stepService.AddStepAsync(new Step(step), token);
                 if (step.Deadline.HasValue)
                 {
                     var deadline = new DeadlineEntity();
                     deadline.UserId = goal.UserId;
                     deadline.StepId = id;
                     deadline.Deadline = step.Deadline.Value;
-                    await _deadlineService.AddDeadlineAsync(deadline);
+                    await _deadlineService.AddDeadlineAsync(deadline, token);
                 }
 
                 stepsIds.Add(id);
             }
             var entity = new GoalEntity();
             entity.UserId = goal.UserId;
-            entity.IdFilters = goal.CategoriesId.Where(id => _filterService.DoesIdExist(id)).ToArray();
+            entity.IdFilters = goal.CategoriesId.Where(id => _filterService.DoesIdExist(id, token)).ToArray();
             entity.StartDate = goal.StartDate;
             entity.Deadline = goal.Deadline;
             entity.IdSteps = stepsIds.ToArray();
             entity.Title = goal.Title;
             
-            var goalId = await _goalRepository.AddGoalAsync(entity);
+            var goalId = await _goalRepository.AddGoalAsync(entity, token);
             
             if (goal.Deadline.HasValue)
             {
@@ -94,14 +94,14 @@ namespace ServerPartWhatAmIToDo.Services
                 deadline.UserId = goal.UserId;
                 deadline.GoalId = goalId;
                 deadline.Deadline = goal.Deadline.Value;
-                await _deadlineService.AddDeadlineAsync(deadline);
+                await _deadlineService.AddDeadlineAsync(deadline, token);
             }
         }
 
-        public async Task UpdateGoalAsync(int goalId, GoalRequest request)
+        public async Task UpdateGoalAsync(int goalId, GoalRequest request, CancellationToken token)
         {
             // Получить текущую цель из базы данных
-            var currentGoal = await _goalRepository.GetGoalByIdAsync(goalId);
+            var currentGoal = await _goalRepository.GetGoalByIdAsync(goalId, token);
 
             if (currentGoal == null)
             {
@@ -111,7 +111,7 @@ namespace ServerPartWhatAmIToDo.Services
             var stepsIds = new List<int>();
 
             // Получить текущие шаги, связанные с целью
-            var currentSteps = await _goalRepository.GetStepsByGoalIdAsync(goalId);
+            var currentSteps = await _goalRepository.GetStepsByGoalIdAsync(goalId, token);
 
             // Постоянный актуальный список шагов из модели
             var updatedSteps = request.Steps;
@@ -134,11 +134,11 @@ namespace ServerPartWhatAmIToDo.Services
             // Удалить шаги
             foreach (var step in stepsToRemove)
             {
-                await _stepService.DeleteStepAsync(step.StepId);
-                var deadlines = await _deadlineService.GetDeadlinesByStepIdAsync(step.StepId);
+                await _stepService.DeleteStepAsync(step.StepId, token);
+                var deadlines = await _deadlineService.GetDeadlinesByStepIdAsync(step.StepId, token);
                 foreach (var deadline in deadlines)
                 {
-                    await _deadlineService.DeleteDeadlineAsync(deadline.DeadlineId);
+                    await _deadlineService.DeleteDeadlineAsync(deadline.DeadlineId, token);
                 }
             }
 
@@ -150,17 +150,17 @@ namespace ServerPartWhatAmIToDo.Services
                 existingStep.IsCompleted = step.IsCompleted;
                 if (existingStep.Deadline != step.Deadline && existingStep.Deadline.HasValue)
                 {
-                    var deadlines = await _deadlineService.GetDeadlinesByStepIdAsync(existingStep.StepId);
+                    var deadlines = await _deadlineService.GetDeadlinesByStepIdAsync(existingStep.StepId, token);
                     foreach (var deadline in deadlines)
                     {
                         deadline.Deadline = existingStep.Deadline.Value;
                         
-                        await _deadlineService.UpdateDeadlineAsync(deadline);
+                        await _deadlineService.UpdateDeadlineAsync(deadline, token);
                     }
                 }
                 existingStep.Deadline = step.Deadline;
 
-                await  _stepService.UpdateStepAsync(existingStep);
+                await  _stepService.UpdateStepAsync(existingStep, token);
                 stepsIds.Add(existingStep.StepId);
             }
 
@@ -169,7 +169,7 @@ namespace ServerPartWhatAmIToDo.Services
             {
                 var newStep = new Step(step);
 
-                var id = await _stepService.AddStepAsync(newStep);
+                var id = await _stepService.AddStepAsync(newStep, token);
                 
                 if (step.Deadline.HasValue)
                 {
@@ -177,7 +177,7 @@ namespace ServerPartWhatAmIToDo.Services
                     deadline.UserId = request.UserId;
                     deadline.StepId = id;
                     deadline.Deadline = step.Deadline.Value;
-                    await _deadlineService.AddDeadlineAsync(deadline);
+                    await _deadlineService.AddDeadlineAsync(deadline, token);
                 }
                 
                 stepsIds.Add(id);
@@ -186,30 +186,30 @@ namespace ServerPartWhatAmIToDo.Services
             currentGoal.Title = request.Title;
             currentGoal.Deadline = request.Deadline;
             currentGoal.StartDate = request.StartDate;
-            currentGoal.IdFilters = request.CategoriesId.Where(id => _filterService.DoesIdExist(id)).ToArray();
+            currentGoal.IdFilters = request.CategoriesId.Where(id => _filterService.DoesIdExist(id, token)).ToArray();
             currentGoal.IdSteps = stepsIds.ToArray();
-            await _goalRepository.UpdateGoalAsync(currentGoal);
+            await _goalRepository.UpdateGoalAsync(currentGoal, token);
         }
 
-        public async Task DeleteGoalAsync(int goalId)
+        public async Task DeleteGoalAsync(int goalId, CancellationToken token)
         {
-            var steps = await _goalRepository.GetStepsByGoalIdAsync(goalId);
+            var steps = await _goalRepository.GetStepsByGoalIdAsync(goalId, token);
             foreach (var step in steps)
             {
-                await _stepService.DeleteStepAsync(step.StepId);
-                var deadlines = await _deadlineService.GetDeadlinesByStepIdAsync(step.StepId);
+                await _stepService.DeleteStepAsync(step.StepId, token);
+                var deadlines = await _deadlineService.GetDeadlinesByStepIdAsync(step.StepId, token);
                 foreach (var deadline in deadlines)
                 {
-                    await _deadlineService.DeleteDeadlineAsync(deadline.DeadlineId);
+                    await _deadlineService.DeleteDeadlineAsync(deadline.DeadlineId, token);
                 }
             }
             
-            var deadlinesGoals = await _deadlineService.GetDeadlinesByGoalIdAsync(goalId);
+            var deadlinesGoals = await _deadlineService.GetDeadlinesByGoalIdAsync(goalId, token);
             foreach (var deadline in deadlinesGoals)
             {
-                await _deadlineService.DeleteDeadlineAsync(deadline.DeadlineId);
+                await _deadlineService.DeleteDeadlineAsync(deadline.DeadlineId, token);
             }
-            await _goalRepository.DeleteGoalAsync(goalId);
+            await _goalRepository.DeleteGoalAsync(goalId, token);
         }
     }
 }

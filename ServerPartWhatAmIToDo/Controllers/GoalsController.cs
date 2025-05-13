@@ -11,7 +11,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
-// [Authorize]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class GoalsController : ControllerBase
@@ -26,14 +26,14 @@ public class GoalsController : ControllerBase
     public async Task<IActionResult> GetAllGoals([FromQuery] int userId, CancellationToken token)
     {
         // Фильтрация целей по userId
-        var goals = await _goalService.GetGoalsByUserIdAsync(userId);
+        var goals = await _goalService.GetGoalsByUserIdAsync(userId, token);
         return Ok(goals);
     }
 
     [HttpPost("create")]
     public async Task<IActionResult> CreateGoal([FromBody] GoalRequest newGoal, CancellationToken token)
     {
-        await _goalService.AddGoalAsync(newGoal);
+        await _goalService.AddGoalAsync(newGoal, token);
         return Ok(new { Message = "Goal created successfully" });
     }
     
@@ -48,7 +48,7 @@ public class GoalsController : ControllerBase
     [HttpPut("update/{id}")]
     public async Task<IActionResult> UpdateGoal(int id, [FromBody] GoalRequest request, CancellationToken token)
     {
-        await _goalService.UpdateGoalAsync(id, request);
+        await _goalService.UpdateGoalAsync(id, request, token);
 
         return Ok(new { Message = "Goal updated successfully" });
     }
@@ -56,7 +56,7 @@ public class GoalsController : ControllerBase
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteGoal(int id, CancellationToken token)
     {
-       await _goalService.DeleteGoalAsync(id);
+       await _goalService.DeleteGoalAsync(id, token);
         return Ok(new { Message = "Goal deleted successfully" });
     }
     

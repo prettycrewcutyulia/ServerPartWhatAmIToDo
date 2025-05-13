@@ -5,7 +5,7 @@ using ServerPartWhatAmIToDo.Services;
 
 namespace ServerPartWhatAmIToDo.Controllers;
 
-// [Authorize]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class FiltersController : ControllerBase
@@ -22,21 +22,21 @@ public class FiltersController : ControllerBase
     public IActionResult GetAllFilters([FromQuery] int userId, CancellationToken token)
     {
         
-        var filters =  _filterService.GetFiltersByUserIdAsync(userId).Result;
+        var filters =  _filterService.GetFiltersByUserIdAsync(userId, token).Result;
         return Ok(filters);
     }
 
     [HttpPost("create")]
     public IActionResult CreateFilter([FromQuery]int userId, [FromBody] FilterRequest newFilter, CancellationToken token)
     {
-        var filter = _filterService.AddFilterAsync(userId, newFilter).Result;
+        var filter = _filterService.AddFilterAsync(userId, newFilter, token).Result;
         return Ok(filter);
     }
 
     [HttpPut("update")]
     public IActionResult UpdateFilter([FromBody] UpdateFilterRequest request, CancellationToken token)
     {
-        var filter = _filterService.UpdateFilterAsync(request).Result;
+        var filter = _filterService.UpdateFilterAsync(request, token).Result;
 
         return Ok(filter);
     }
@@ -44,7 +44,7 @@ public class FiltersController : ControllerBase
     [HttpDelete("delete")]
     public IActionResult DeleteFilter([FromQuery] int id, CancellationToken token)
     {
-       _filterService.DeleteFilterAsync(id).Wait();
+       _filterService.DeleteFilterAsync(id, token).Wait();
         return Ok(new { Message = "Filter deleted successfully" });
     }
 }

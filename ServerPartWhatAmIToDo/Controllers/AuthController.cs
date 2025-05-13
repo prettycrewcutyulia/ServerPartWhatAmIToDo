@@ -19,7 +19,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken token)
     {
-        var result = await _userService.Login(email: request.Email, password: request.Password);
+        var result = await _userService.Login(email: request.Email, password: request.Password, token);
         // Проверка логина и пароля пользователя
         if (result.Item1)
         {
@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-           var userId = await _userService.AddUserAsync(request);
+           var userId = await _userService.AddUserAsync(request, token);
             
            var tokenString = await TokenService.GenerateToken(request.Email);
             
@@ -46,43 +46,4 @@ public class AuthController : ControllerBase
             return BadRequest("Registration failed");
         }
     }
-    
-    // [HttpPost("send-password-reset")]
-    // public IActionResult SendPasswordResetEmail([FromBody] string email)
-    // {
-    //     if (string.IsNullOrWhiteSpace(email))
-    //     {
-    //         return BadRequest("Email must be provided.");
-    //     }
-    //
-    //     // Вызов метода отправки письма
-    //     SendPasswordResetEmailService(email);
-    //
-    //     return Ok("Password reset email sent.");
-    // }
-    //
-    // public void SendPasswordResetEmailService(string toEmail)
-    // {
-    //     string fromEmail = "gudoshnikova11@gmail.com";
-    //     string fromPassword = "TOP27u12g2002";
-    //     string subject = "Password Reset Request";
-    //     string body = $"Please reset your password using the following link: 1111111";
-    //
-    //     var smtpClient = new SmtpClient("smtp.gmail.com")
-    //     {
-    //         Port = 587, // или другой порт, в зависимости от вашего SMTP сервера
-    //         Credentials = new NetworkCredential(fromEmail, fromPassword),
-    //         EnableSsl = true,
-    //     };
-    //
-    //     try
-    //     {
-    //         smtpClient.Send(fromEmail, toEmail, subject, body);
-    //         Console.WriteLine("Password reset email sent successfully.");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error sending email: {ex.Message}");
-    //     }
-    // }
 }

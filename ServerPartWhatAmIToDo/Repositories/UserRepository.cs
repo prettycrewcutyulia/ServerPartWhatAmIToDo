@@ -14,22 +14,22 @@ namespace ServerPartWhatAmIToDo.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<IEnumerable<UserEntity>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserEntity>> GetAllUsersAsync(CancellationToken cancellationToken)
         {
             return await _context.Users.ToListAsync();
         }
 
-        public async Task<UserEntity> GetUserByIdAsync(int userId)
+        public async Task<UserEntity> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Users.FindAsync(userId);
         }
 
-        public async Task<UserEntity> GetUserByEmailAsync(string email)
+        public async Task<UserEntity> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<long> AddUserAsync(User user)
+        public async Task<long> AddUserAsync(User user, CancellationToken cancellationToken)
         {
             try
             {
@@ -53,15 +53,15 @@ namespace ServerPartWhatAmIToDo.Repositories
             }
         }
 
-        public async Task UpdateUserAsync(UserEntity user)
+        public async Task UpdateUserAsync(UserEntity user, CancellationToken cancellationToken)
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteUserAsync(int userId)
+        public async Task DeleteUserAsync(int userId, CancellationToken cancellationToken)
         {
-            var user = await GetUserByIdAsync(userId);
+            var user = await GetUserByIdAsync(userId, cancellationToken);
             if (user != null)
             {
                 _context.Users.Remove(user);

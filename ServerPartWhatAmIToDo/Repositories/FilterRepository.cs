@@ -13,22 +13,22 @@ namespace ServerPartWhatAmIToDo.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<FilterEntity>> GetAllFiltersAsync()
+        public async Task<IEnumerable<FilterEntity>> GetAllFiltersAsync(CancellationToken cancellationToken)
         {
             return await _context.Filters.ToListAsync();
         }
 
-        public async Task<FilterEntity> GetFilterByIdAsync(int filterId)
+        public async Task<FilterEntity> GetFilterByIdAsync(int filterId, CancellationToken cancellationToken)
         {
             return await _context.Filters.FindAsync(filterId);
         }
 
-        public async Task<IEnumerable<FilterEntity>> GetFiltersByUserIdAsync(int userId)
+        public async Task<IEnumerable<FilterEntity>> GetFiltersByUserIdAsync(int userId, CancellationToken cancellationToken)
         {
             return await _context.Filters.Where(filter => filter.UserId == userId).ToListAsync();
         }
 
-        public async Task<FilterEntity> AddFilterAsync(FilterEntity filter)
+        public async Task<FilterEntity> AddFilterAsync(FilterEntity filter, CancellationToken cancellationToken)
         {
             var allUserFilters = await _context.Filters.Where(element => filter.UserId == element.UserId).ToListAsync();
             var oldFilters = allUserFilters.Where(element => filter.Title == element.Title);
@@ -41,7 +41,7 @@ namespace ServerPartWhatAmIToDo.Repositories
             return filter;
         }
 
-        public async Task<FilterEntity> UpdateFilterAsync(FilterEntity filter)
+        public async Task<FilterEntity> UpdateFilterAsync(FilterEntity filter, CancellationToken cancellationToken)
         {
             _context.Filters.Update(filter);
             await _context.SaveChangesAsync();
@@ -49,9 +49,9 @@ namespace ServerPartWhatAmIToDo.Repositories
             return filter;
         }
 
-        public async Task DeleteFilterAsync(int filterId)
+        public async Task DeleteFilterAsync(int filterId, CancellationToken cancellationToken)
         {
-            var filter = await GetFilterByIdAsync(filterId);
+            var filter = await GetFilterByIdAsync(filterId, cancellationToken);
             if (filter != null)
             {
                 _context.Filters.Remove(filter);

@@ -4,10 +4,10 @@ namespace ServerPartWhatAmIToDo.Repositories.Protocols
 {
     public interface IStepRepository
     {
-        Task<IEnumerable<StepEntity>> GetAllStepsAsync();
-        Task<StepEntity> GetStepByIdAsync(int stepId);
-        Task<int> AddStepAsync(StepEntity step);
-        Task UpdateStepAsync(StepEntity step);
-        Task DeleteStepAsync(int stepId);
+        Task<IEnumerable<StepEntity>> GetAllStepsAsync(CancellationToken cancellationToken);
+        Task<StepEntity> GetStepByIdAsync(int stepId, CancellationToken cancellationToken);
+        Task<int> AddStepAsync(StepEntity step, CancellationToken cancellationToken);
+        Task UpdateStepAsync(StepEntity step, CancellationToken cancellationToken);
+        Task DeleteStepAsync(int stepId, CancellationToken cancellationToken);
     }
 }

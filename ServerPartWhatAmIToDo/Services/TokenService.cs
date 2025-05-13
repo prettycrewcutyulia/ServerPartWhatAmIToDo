@@ -19,7 +19,7 @@ public static class TokenService
             {
                 new Claim(ClaimTypes.Name, email),
             }),
-            Expires = DateTime.UtcNow.AddHours(24),
+            Expires = null,
             Issuer =  Environment.GetEnvironmentVariable("ValidIssuer"),
             Audience = Environment.GetEnvironmentVariable("ValidAudience"),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

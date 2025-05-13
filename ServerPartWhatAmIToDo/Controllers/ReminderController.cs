@@ -22,7 +22,7 @@ public class RemindersController : ControllerBase
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetRemindersByUserId(int userId, CancellationToken token)
     {
-        var reminders =  await _reminderService.GetRemindersByUserIdAsync(userId);
+        var reminders =  await _reminderService.GetRemindersByUserIdAsync(userId, token);
         return Ok(reminders);
     }
 
@@ -34,14 +34,14 @@ public class RemindersController : ControllerBase
             return BadRequest("Reminder cannot be null.");
         }
 
-        int reminderId = await _reminderService.AddReminderAsync(reminder);
+        int reminderId = await _reminderService.AddReminderAsync(reminder, token);
         return Ok(reminderId);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteReminder(int id, CancellationToken token)
     { 
-        await _reminderService.DeleteReminderAsync(id);
+        await _reminderService.DeleteReminderAsync(id, token);
         return Ok();
     }
 }

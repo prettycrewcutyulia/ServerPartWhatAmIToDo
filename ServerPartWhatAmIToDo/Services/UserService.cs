@@ -8,16 +8,16 @@ namespace ServerPartWhatAmIToDo.Services
 {
     public interface IUserService
     {
-        Task<(bool, LoginResponse?)> Login(string email, string password);
-        Task<IEnumerable<UserEntity>> GetAllUsersAsync();
-        Task<UserEntity?> GetUserByIdAsync(int userId);
-        Task<UserEntity?> GetUserByEmailAsync(string email);
-        Task<long> AddUserAsync(RegisterRequest user);
-        Task<bool> ExistTgUserAsync(int userId);
-        Task UpdateUserAsync(UpdateAccountRequest user);
+        Task<(bool, LoginResponse?)> Login(string email, string password, CancellationToken cancellationToken);
+        Task<IEnumerable<UserEntity>> GetAllUsersAsync(CancellationToken cancellationToken);
+        Task<UserEntity?> GetUserByIdAsync(int userId, CancellationToken cancellationToken);
+        Task<UserEntity?> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
+        Task<long> AddUserAsync(RegisterRequest user, CancellationToken cancellationToken);
+        Task<bool> ExistTgUserAsync(int userId, CancellationToken cancellationToken);
+        Task UpdateUserAsync(UpdateAccountRequest user, CancellationToken cancellationToken);
         
-        Task UpdateUserAsync(UpdateTgRequest user);
-        Task DeleteUserAsync(int userId);
+        Task UpdateUserAsync(UpdateTgRequest user, CancellationToken cancellationToken);
+        Task DeleteUserAsync(int userId, CancellationToken cancellationToken);
     }
     
     public class UserService : IUserService
@@ -42,11 +42,11 @@ namespace ServerPartWhatAmIToDo.Services
             _filterRepository = filterRepository;
         }
 
-        public async Task<(bool, LoginResponse?)> Login(string email, string password)
+        public async Task<(bool, LoginResponse?)> Login(string email, string password, CancellationToken cancellationToken)
         {
             try
             {
-                var user = await _userRepository.GetUserByEmailAsync(email);
+                var user = await _userRepository.GetUserByEmailAsync(email, cancellationToken);
                 if (PasswordService.VerifyPassword(password, user.Password))
                 {
                     var tokenString = TokenService.GenerateToken(email).Result;
@@ -62,42 +62,41 @@ namespace ServerPartWhatAmIToDo.Services
             return (false, null);
         }
 
-        public async Task<IEnumerable<UserEntity>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserEntity>> GetAllUsersAsync(CancellationToken cancellationToken)
         {
-            return await _userRepository.GetAllUsersAsync();
+            return await _userRepository.GetAllUsersAsync(cancellationToken);
         }
 
-        public async Task<UserEntity?> GetUserByIdAsync(int userId)
+        public async Task<UserEntity?> GetUserByIdAsync(int userId, CancellationToken cancellationToken)
         {
-            return await _userRepository.GetUserByIdAsync(userId);
+            return await _userRepository.GetUserByIdAsync(userId, cancellationToken);
         }
         
-        public async Task<UserEntity?> GetUserByEmailAsync(string email)
+        public async Task<UserEntity?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
         {
-            return await _userRepository.GetUserByEmailAsync(email);
+            return await _userRepository.GetUserByEmailAsync(email, cancellationToken);
         }
 
-        public async Task<long> AddUserAsync(RegisterRequest user)
+        public async Task<long> AddUserAsync(RegisterRequest user, CancellationToken cancellationToken)
         {
             User userData = new User(
                 user.Nickname,
                 user.Email,
                PasswordService.HashPassword(user.Password)
             );
-            // Здесь можно добавить валидацию или другую бизнес-логику
-            return await _userRepository.AddUserAsync(userData);
+            return await _userRepository.AddUserAsync(userData, cancellationToken);
         }
 
-        public async Task<bool> ExistTgUserAsync(int userId)
+        public async Task<bool> ExistTgUserAsync(int userId, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.GetUserByIdAsync(userId);
+            var user = await _userRepository.GetUserByIdAsync(userId, cancellationToken);
             return user.IdTg != null;
         }
 
-        public async Task UpdateUserAsync(UpdateAccountRequest user)
+        public async Task UpdateUserAsync(UpdateAccountRequest user, CancellationToken cancellationToken)
         {
             
-            var userEntity = await _userRepository.GetUserByIdAsync(user.UserId);
+            var userEntity = await _userRepository.GetUserByIdAsync(user.UserId, cancellationToken);
             if (user.Name != null)
             {
                 userEntity.Name = user.Name;
@@ -107,44 +106,43 @@ namespace ServerPartWhatAmIToDo.Services
             {
                 userEntity.Email = user.Email;
             }
-            // Здесь можно добавить проверку существования пользователя и другую бизнес-логику
-            await _userRepository.UpdateUserAsync(userEntity);
+
+            await _userRepository.UpdateUserAsync(userEntity, cancellationToken);
         }
 
-        public async Task UpdateUserAsync(UpdateTgRequest user)
+        public async Task UpdateUserAsync(UpdateTgRequest user, CancellationToken cancellationToken)
         {
-            var userEntity = await _userRepository.GetUserByEmailAsync(user.Email);
+            var userEntity = await _userRepository.GetUserByEmailAsync(user.Email, cancellationToken);
             userEntity.IdTg = user.TgId;
-            await _userRepository.UpdateUserAsync(userEntity);
+            await _userRepository.UpdateUserAsync(userEntity, cancellationToken);
         }
 
-        public async Task DeleteUserAsync(int userId)
+        public async Task DeleteUserAsync(int userId, CancellationToken cancellationToken)
         {
-            var reminders = await _reminderRepository.GetRemindersByUserIdAsync(userId);
+            var reminders = await _reminderRepository.GetRemindersByUserIdAsync(userId, cancellationToken);
             foreach (var reminder in reminders)
             {
-                await _reminderRepository.DeleteReminderAsync(reminder.ReminderId);
+                await _reminderRepository.DeleteReminderAsync(reminder.ReminderId, cancellationToken);
             }
             
-            var deadlines = await _deadlineRepository.GetDeadlinesByUserIdAsync(userId);
+            var deadlines = await _deadlineRepository.GetDeadlinesByUserIdAsync(userId, cancellationToken);
             foreach (var deadline in deadlines)
             {
-                await _deadlineRepository.DeleteDeadlineAsync(deadline.DeadlineId);
+                await _deadlineRepository.DeleteDeadlineAsync(deadline.DeadlineId, cancellationToken);
             }
             
-            var goals = await _goalRepository.GetGoalsByUserIdAsync(userId);
+            var goals = await _goalRepository.GetGoalsByUserIdAsync(userId, cancellationToken);
             foreach (var goal in goals)
             {
-                await _goalRepository.DeleteGoalAsync(goal.GoalId);
+                await _goalRepository.DeleteGoalAsync(goal.GoalId, cancellationToken);
             }
             
-            var filters = await _filterRepository.GetFiltersByUserIdAsync(userId);
+            var filters = await _filterRepository.GetFiltersByUserIdAsync(userId, cancellationToken);
             foreach (var filter in filters)
             {
-                await _filterRepository.DeleteFilterAsync(filter.FilterId);
+                await _filterRepository.DeleteFilterAsync(filter.FilterId, cancellationToken);
             }
-            // Здесь можно добавить проверку существования пользователя или другие условия
-            await _userRepository.DeleteUserAsync(userId);
+            await _userRepository.DeleteUserAsync(userId, cancellationToken);
         }
     }
 }
