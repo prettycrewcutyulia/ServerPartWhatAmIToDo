@@ -21,7 +21,7 @@ builder.Services.AddAuthentication(options =>
         {
             ValidateIssuer = true,
             ValidateAudience = true,
-            ValidateLifetime = true,
+            ValidateLifetime = false,
             ValidateIssuerSigningKey = true,
             ValidIssuer = Environment.GetEnvironmentVariable("ValidIssuer"),
             ValidAudience = Environment.GetEnvironmentVariable("ValidAudience"),
